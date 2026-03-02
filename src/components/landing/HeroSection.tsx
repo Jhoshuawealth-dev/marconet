@@ -47,7 +47,7 @@ const HeroSection = () => (
             </Button>
           </Link>
           <a href="#how-it-works">
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold">
+            <Button size="lg" variant="outline" className="border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground font-bold">
               See How It Works
             </Button>
           </a>
