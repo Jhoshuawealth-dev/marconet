@@ -1,4 +1,4 @@
-import { Bell, Sprout, TrendingUp, ArrowUpRight, ArrowDownRight, Zap, Leaf } from "lucide-react";
+import { Bell, Sprout, TrendingUp, ArrowUpRight, ArrowDownRight, Zap, Leaf, Wallet, Users, BookOpen, Megaphone, Shield, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
@@ -23,9 +23,16 @@ const activeFields = [
 
 const quickLinks = [
   { label: "Mining", icon: Zap, to: "/mining", color: "bg-accent" },
-  { label: "Wallet", icon: TrendingUp, to: "/wallet", color: "bg-primary" },
-  { label: "Invest", icon: Leaf, to: "/invest", color: "bg-secondary" },
-  { label: "Learn", icon: Sprout, to: "/education", color: "bg-accent" },
+  { label: "Wallet", icon: Wallet, to: "/wallet", color: "bg-primary" },
+  { label: "Invest", icon: TrendingUp, to: "/invest", color: "bg-secondary" },
+  { label: "Learn", icon: BookOpen, to: "/education", color: "bg-accent" },
+];
+
+const moreLinks = [
+  { label: "Community", icon: Users, to: "/community", color: "bg-primary" },
+  { label: "Ads", icon: Megaphone, to: "/ads", color: "bg-accent" },
+  { label: "Verify", icon: Shield, to: "/verification", color: "bg-secondary" },
+  { label: "Analytics", icon: BarChart3, to: "/market", color: "bg-primary" },
 ];
 
 const DashboardPage = () => (
@@ -104,6 +111,18 @@ const DashboardPage = () => (
       {/* Quick Links */}
       <div className="grid grid-cols-4 gap-3">
         {quickLinks.map((q) => (
+          <Link key={q.label} to={q.to} className="flex flex-col items-center gap-1.5">
+            <div className={`w-12 h-12 rounded-2xl ${q.color} flex items-center justify-center shadow-sm`}>
+              <q.icon className="h-5 w-5 text-accent-foreground" />
+            </div>
+            <span className="text-[10px] font-semibold text-muted-foreground">{q.label}</span>
+          </Link>
+        ))}
+      </div>
+
+      {/* More Quick Links */}
+      <div className="grid grid-cols-4 gap-3">
+        {moreLinks.map((q) => (
           <Link key={q.label} to={q.to} className="flex flex-col items-center gap-1.5">
             <div className={`w-12 h-12 rounded-2xl ${q.color} flex items-center justify-center shadow-sm`}>
               <q.icon className="h-5 w-5 text-accent-foreground" />
