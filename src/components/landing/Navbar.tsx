@@ -19,7 +19,7 @@ const Navbar = () => {
           <a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a>
           <a href="#projects" className="hover:text-foreground transition-colors">Projects</a>
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
-          <Link to="/dashboard">
+          <Link to="/signup">
             <Button size="sm">Launch App</Button>
           </Link>
         </div>
@@ -35,7 +35,7 @@ const Navbar = () => {
           <a href="#how-it-works" onClick={() => setOpen(false)} className="py-2 text-muted-foreground">How It Works</a>
           <a href="#projects" onClick={() => setOpen(false)} className="py-2 text-muted-foreground">Projects</a>
           <a href="#faq" onClick={() => setOpen(false)} className="py-2 text-muted-foreground">FAQ</a>
-          <Link to="/dashboard" onClick={() => setOpen(false)}>
+          <Link to="/signup" onClick={() => setOpen(false)}>
             <Button className="w-full" size="sm">Launch App</Button>
           </Link>
         </div>

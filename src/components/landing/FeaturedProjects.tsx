@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { TrendingUp, Clock, Boxes } from "lucide-react";
 
 const projects = [
@@ -48,7 +49,9 @@ const FeaturedProjects = () => (
                 </div>
               </div>
 
-              <Button size="sm" className="w-full text-xs font-bold">Invest Now</Button>
+              <Link to="/signup" className="w-full">
+                <Button size="sm" className="w-full text-xs font-bold">Invest Now</Button>
+              </Link>
             </CardContent>
           </Card>
         ))}

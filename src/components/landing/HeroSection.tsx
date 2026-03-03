@@ -41,7 +41,7 @@ const HeroSection = () => (
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Link to="/onboarding">
+          <Link to="/signup">
             <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base px-6">
               Join the Revolution
             </Button>
