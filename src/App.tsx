@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { NdcProvider } from "@/contexts/NdcContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -11,8 +12,11 @@ import SignUpPage from "./pages/SignUpPage";
 import DashboardPage from "./pages/DashboardPage";
 import MiningPage from "./pages/MiningPage";
 import WalletPage from "./pages/WalletPage";
+import FundWalletPage from "./pages/FundWalletPage";
+import TransferPage from "./pages/TransferPage";
 import InvestPage from "./pages/InvestPage";
 import ProjectDetailsPage from "./pages/ProjectDetailsPage";
+import StakePage from "./pages/StakePage";
 import CommunityPage from "./pages/CommunityPage";
 import EducationPage from "./pages/EducationPage";
 import AdsManagerPage from "./pages/AdsManagerPage";
@@ -34,38 +38,42 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/signin" element={<SignInPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/mining" element={<MiningPage />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/invest" element={<InvestPage />} />
-          <Route path="/invest/:id" element={<ProjectDetailsPage />} />
-          <Route path="/community" element={<CommunityPage />} />
-          <Route path="/education" element={<EducationPage />} />
-          <Route path="/ads" element={<AdsManagerPage />} />
-          <Route path="/ads/create" element={<CreateCampaignPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/verification" element={<VerificationPage />} />
-          <Route path="/fields" element={<FieldsPage />} />
-          <Route path="/market" element={<MarketPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/careers" element={<CareersPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/platform-charter" element={<PlatformCharterPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <NdcProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/mining" element={<MiningPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/wallet/fund" element={<FundWalletPage />} />
+            <Route path="/wallet/transfer" element={<TransferPage />} />
+            <Route path="/invest" element={<InvestPage />} />
+            <Route path="/invest/:id" element={<ProjectDetailsPage />} />
+            <Route path="/invest/:id/stake" element={<StakePage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/education" element={<EducationPage />} />
+            <Route path="/ads" element={<AdsManagerPage />} />
+            <Route path="/ads/create" element={<CreateCampaignPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/verification" element={<VerificationPage />} />
+            <Route path="/fields" element={<FieldsPage />} />
+            <Route path="/market" element={<MarketPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/platform-charter" element={<PlatformCharterPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </NdcProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

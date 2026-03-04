@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Zap, Cpu, TrendingUp, Wifi, WifiOff, ArrowUpRight, Clock, Gift, ShieldCheck, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
+import { useNdc } from "@/contexts/NdcContext";
+import { useToast } from "@/hooks/use-toast";
 
 const miningHistory = [
   { id: 1, date: "Today, 2:30 PM", ndc: "+45 NDC", type: "AI Harvest", status: "Completed" },
@@ -18,12 +20,19 @@ const upgrades = [
 ];
 
 const MiningPage = () => {
-  const [isMining, setIsMining] = useState(true);
+  const { isMining, miningSession, startMining, stopMining, balance } = useNdc();
+  const { toast } = useToast();
+
+  const handleUpgrade = (name: string) => {
+    toast({
+      title: "Coming Soon! 🚧",
+      description: `${name} upgrade will be available in the next update.`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="max-w-md mx-auto px-4 pt-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-extrabold text-foreground">AI Farming</h1>
           <span className="text-xs font-semibold text-primary flex items-center gap-1">
@@ -39,10 +48,8 @@ const MiningPage = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-xs text-primary-foreground/70 font-medium">Current Session</p>
-                <p className="text-3xl font-extrabold tracking-tight">156 NDC</p>
-                <span className="flex items-center gap-0.5 text-xs font-semibold text-accent">
-                  <ArrowUpRight className="h-3 w-3" /> +8.2% today
-                </span>
+                <p className="text-3xl font-extrabold tracking-tight">{miningSession} NDC</p>
+                <p className="text-xs text-primary-foreground/50 mt-1">Balance: {balance.toLocaleString()} NDC</p>
               </div>
               <div className={`w-20 h-20 rounded-full border-4 ${isMining ? "border-accent animate-pulse" : "border-primary-foreground/20"} flex items-center justify-center`}>
                 <Cpu className={`h-8 w-8 ${isMining ? "text-accent" : "text-primary-foreground/40"}`} />
@@ -50,11 +57,11 @@ const MiningPage = () => {
             </div>
 
             <Button
-              onClick={() => setIsMining(!isMining)}
+              onClick={() => isMining ? stopMining() : startMining()}
               size="sm"
               className={`w-full font-bold text-xs h-10 rounded-xl ${isMining ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-accent text-accent-foreground hover:bg-accent/90"}`}
             >
-              {isMining ? "⏸ Pause Mining" : "▶ Start Mining"}
+              {isMining ? "⏸ Stop Mining" : "▶ Start Mining"}
             </Button>
           </CardContent>
         </Card>
@@ -64,15 +71,15 @@ const MiningPage = () => {
           <Card className="border shadow-sm">
             <CardContent className="p-4 text-center">
               <Zap className="h-5 w-5 text-accent mx-auto mb-1" />
-              <p className="text-lg font-extrabold text-foreground">42.5</p>
+              <p className="text-lg font-extrabold text-foreground">{isMining ? "42.5" : "0.0"}</p>
               <p className="text-[10px] text-muted-foreground">Hash Power (MH/s)</p>
             </CardContent>
           </Card>
           <Card className="border shadow-sm">
             <CardContent className="p-4 text-center">
               <TrendingUp className="h-5 w-5 text-primary mx-auto mb-1" />
-              <p className="text-lg font-extrabold text-foreground">1,240</p>
-              <p className="text-[10px] text-muted-foreground">Data Yield (daily)</p>
+              <p className="text-lg font-extrabold text-foreground">{miningSession}</p>
+              <p className="text-[10px] text-muted-foreground">Session Yield (NDC)</p>
             </CardContent>
           </Card>
         </div>
@@ -83,9 +90,9 @@ const MiningPage = () => {
             <h3 className="font-bold text-sm text-foreground mb-3">Network Health</h3>
             <div className="space-y-2">
               {[
-                { label: "Uptime", value: "99.8%", color: "bg-primary" },
-                { label: "Latency", value: "12ms", color: "bg-accent" },
-                { label: "Peers", value: "847", color: "bg-secondary" },
+                { label: "Uptime", value: isMining ? "99.8%" : "—" },
+                { label: "Latency", value: isMining ? "12ms" : "—" },
+                { label: "Peers", value: isMining ? "847" : "0" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">{item.label}</span>
@@ -110,7 +117,12 @@ const MiningPage = () => {
                     <h3 className="font-bold text-sm text-foreground">{u.name}</h3>
                     <p className="text-[10px] text-muted-foreground">{u.desc}</p>
                   </div>
-                  <Button size="sm" variant="outline" className="text-[10px] h-8 rounded-xl font-bold">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-[10px] h-8 rounded-xl font-bold"
+                    onClick={() => handleUpgrade(u.name)}
+                  >
                     {u.cost}
                   </Button>
                 </CardContent>
