@@ -32,7 +32,14 @@ const moreLinks = [
 ];
 
 const DashboardPage = () => {
-  const { balance } = useNdc();
+  const { balance, monthlyHarvests, harvestAction } = useNdc();
+  const harvestClick = () => {
+    if (monthlyHarvests >= 4) {
+      alert("Monthly harvest limit reached (4/month).");
+      return;
+    }
+    harvestAction();
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -61,13 +68,13 @@ const DashboardPage = () => {
                 <ArrowUpRight className="h-3 w-3" /> +12.4%
               </span>
             </div>
-            <p className="text-xs text-primary-foreground/50 mt-1">≈ ₦{(balance * 20).toLocaleString()}</p>
+            <p className="text-xs text-primary-foreground/50 mt-1">≈ ₦{(balance * 11500).toLocaleString()} · £{(balance * 5).toLocaleString()} · ${(balance * 7).toLocaleString()}</p>
             <div className="flex gap-3 mt-4">
               <Link to="/invest" className="flex-1">
                 <Button size="sm" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-xs h-9 rounded-xl">🌱 Sow</Button>
               </Link>
               <Link to="/wallet" className="flex-1">
-                <Button size="sm" variant="outline" className="w-full border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-bold text-xs h-9 rounded-xl">🌾 Harvest</Button>
+                <Button size="sm" variant="outline" onClick={harvestClick} className="w-full border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-bold text-xs h-9 rounded-xl">🌾 Harvest ({monthlyHarvests}/4)</Button>
               </Link>
             </div>
           </CardContent>

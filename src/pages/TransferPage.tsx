@@ -4,8 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { useNdc } from "@/contexts/NdcContext";
+import { useNdc, NDC_RATES } from "@/contexts/NdcContext";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type Currency = "GBP" | "USD" | "NGN";
+const currencySymbols: Record<Currency, string> = { GBP: "£", USD: "$", NGN: "₦" };
 
 const TransferPage = () => {
   const navigate = useNavigate();
@@ -13,10 +17,16 @@ const TransferPage = () => {
   const { toast } = useToast();
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [currency, setCurrency] = useState<Currency>("NGN");
   const [success, setSuccess] = useState(false);
 
+  const num = parseInt(amount) || 0;
+  const convertedValue = num * NDC_RATES[currency];
+  const fee = convertedValue * 0.05;
+  const netReceived = convertedValue - fee;
+  const sym = currencySymbols[currency];
+
   const handleTransfer = () => {
-    const num = parseInt(amount);
     if (!recipient.trim()) {
       toast({ title: "Missing recipient", description: "Please enter a wallet address or username.", variant: "destructive" });
       return;
@@ -25,7 +35,7 @@ const TransferPage = () => {
       toast({ title: "Invalid amount", description: "Please enter a valid amount.", variant: "destructive" });
       return;
     }
-    const ok = spend(num, "Transfer", `Sent to ${recipient}`);
+    const ok = spend(num, "Transfer", `Sent ${sym}${netReceived.toLocaleString()} to ${recipient} (${currency}, 5% fee: ${sym}${fee.toLocaleString()})`);
     if (!ok) {
       toast({ title: "Insufficient balance", description: "You don't have enough NDC for this transfer.", variant: "destructive" });
       return;
@@ -41,7 +51,14 @@ const TransferPage = () => {
             <CheckCircle className="h-8 w-8 text-primary" />
           </div>
           <h2 className="text-xl font-extrabold text-foreground">Transfer Successful!</h2>
-          <p className="text-sm text-muted-foreground">{parseInt(amount).toLocaleString()} NDC sent to <strong>{recipient}</strong></p>
+          <p className="text-sm text-muted-foreground">{num.toLocaleString()} NDC sent to <strong>{recipient}</strong></p>
+          <Card className="border shadow-sm">
+            <CardContent className="p-4 space-y-1 text-xs">
+              <div className="flex justify-between"><span className="text-muted-foreground">Converted</span><span className="font-bold">{sym}{convertedValue.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">5% Fee</span><span className="font-bold text-destructive">-{sym}{fee.toLocaleString()}</span></div>
+              <div className="flex justify-between border-t pt-1"><span className="text-muted-foreground">Recipient gets</span><span className="font-bold text-primary">{sym}{netReceived.toLocaleString()}</span></div>
+            </CardContent>
+          </Card>
           <p className="text-lg font-bold text-foreground">New Balance: {balance.toLocaleString()} NDC</p>
           <Button onClick={() => navigate("/wallet")} className="w-full rounded-xl font-bold">Back to Wallet</Button>
         </div>
@@ -70,15 +87,38 @@ const TransferPage = () => {
             <Input type="number" placeholder="Enter amount" value={amount} onChange={e => setAmount(e.target.value)} className="h-12 rounded-xl text-lg font-bold" />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-foreground">Destination Currency</label>
+            <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
+              <SelectTrigger className="h-12 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GBP">🇬🇧 GBP (£) — 1 NDC = £{NDC_RATES.GBP}</SelectItem>
+                <SelectItem value="USD">🇺🇸 USD ($) — 1 NDC = ${NDC_RATES.USD}</SelectItem>
+                <SelectItem value="NGN">🇳🇬 NGN (₦) — 1 NDC = ₦{NDC_RATES.NGN.toLocaleString()}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Fee breakdown */}
           <Card className="border shadow-sm">
             <CardContent className="p-4 space-y-2">
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Transfer Fee</span>
-                <span className="font-bold text-foreground">0 NDC</span>
+                <span className="text-muted-foreground">NDC Amount</span>
+                <span className="font-bold text-foreground">{num.toLocaleString()} NDC</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-bold text-foreground">{amount ? parseInt(amount).toLocaleString() : "0"} NDC</span>
+                <span className="text-muted-foreground">Converted Value</span>
+                <span className="font-bold text-foreground">{sym}{convertedValue.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Transfer Fee (5%)</span>
+                <span className="font-bold text-destructive">-{sym}{fee.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-xs border-t pt-2">
+                <span className="font-bold text-foreground">Recipient Receives</span>
+                <span className="font-bold text-primary">{sym}{netReceived.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
