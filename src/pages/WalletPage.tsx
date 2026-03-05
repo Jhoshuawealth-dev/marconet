@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { useNdc } from "@/contexts/NdcContext";
+import { useNdc, NDC_RATES } from "@/contexts/NdcContext";
 import { Link } from "react-router-dom";
 
 const yieldData = [
@@ -24,12 +24,8 @@ const WalletPage = () => {
 
   const allTransactions = [
     ...transactions.map(t => ({
-      id: t.id,
-      title: t.title,
-      desc: t.desc,
-      amount: t.amount,
-      positive: t.type === "earn",
-      icon: t.type === "earn" ? Gift : Send,
+      id: t.id, title: t.title, desc: t.desc, amount: t.amount,
+      positive: t.type === "earn", icon: t.type === "earn" ? Gift : Send,
     })),
     ...defaultTransactions,
   ];
@@ -53,7 +49,13 @@ const WalletPage = () => {
                 <ArrowUpRight className="h-3 w-3" /> +5.8%
               </span>
             </div>
-            <p className="text-xs text-primary-foreground/50 mt-1">≈ ₦{(balance * 20).toLocaleString()}</p>
+
+            {/* Multi-currency equivalents */}
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+              <p className="text-xs text-primary-foreground/50">≈ £{(balance * NDC_RATES.GBP).toLocaleString()}</p>
+              <p className="text-xs text-primary-foreground/50">≈ ${(balance * NDC_RATES.USD).toLocaleString()}</p>
+              <p className="text-xs text-primary-foreground/50">≈ ₦{(balance * NDC_RATES.NGN).toLocaleString()}</p>
+            </div>
 
             <div className="flex gap-3 mt-4">
               <Link to="/wallet/fund" className="flex-1">
@@ -66,6 +68,18 @@ const WalletPage = () => {
                   <Send className="h-3.5 w-3.5" /> Transfer
                 </Button>
               </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Exchange Rates */}
+        <Card className="border shadow-sm">
+          <CardContent className="p-3">
+            <p className="text-[10px] font-bold text-foreground mb-1">Exchange Rates</p>
+            <div className="flex gap-4 text-[10px] text-muted-foreground">
+              <span>1 NDC = £{NDC_RATES.GBP}</span>
+              <span>1 NDC = ${NDC_RATES.USD}</span>
+              <span>1 NDC = ₦{NDC_RATES.NGN.toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
