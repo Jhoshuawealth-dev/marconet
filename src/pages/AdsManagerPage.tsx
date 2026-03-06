@@ -58,7 +58,8 @@ const AdsManagerPage = () => (
         <h2 className="font-bold text-foreground text-sm mb-3">Current Campaigns</h2>
         <div className="space-y-3">
           {campaigns.map((c) => (
-            <Card key={c.id} className="border shadow-sm">
+            <Link key={c.id} to={`/ads/${c.id}`}>
+            <Card className="border shadow-sm mb-3">
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-sm text-foreground">{c.name}</h3>
@@ -84,6 +85,7 @@ const AdsManagerPage = () => (
                 </div>
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
       </div>

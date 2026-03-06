@@ -5,9 +5,9 @@ import BottomNav from "@/components/app/BottomNav";
 import { Link } from "react-router-dom";
 
 const settingsItems = [
-  { icon: User, label: "Personal Information", to: "#" },
-  { icon: Lock, label: "Security & 2FA", to: "#" },
-  { icon: Sprout, label: "Farm Assets", to: "#" },
+  { icon: User, label: "Personal Information", to: "/profile/personal" },
+  { icon: Lock, label: "Security & 2FA", to: "/profile/security" },
+  { icon: Sprout, label: "Farm Assets", to: "/profile/farms" },
   { icon: Shield, label: "Identity Verification", to: "/verification" },
 ];
 

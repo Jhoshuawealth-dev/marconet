@@ -52,10 +52,10 @@ const DashboardPage = () => {
               <p className="font-bold text-foreground">John Farmer</p>
             </div>
           </div>
-          <button className="relative w-10 h-10 rounded-full bg-card border flex items-center justify-center">
+          <Link to="/notifications" className="relative w-10 h-10 rounded-full bg-card border flex items-center justify-center">
             <Bell className="h-5 w-5 text-muted-foreground" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full" />
-          </button>
+          </Link>
         </div>
 
         <Card className="bg-primary text-primary-foreground border-0 shadow-lg overflow-hidden relative">
