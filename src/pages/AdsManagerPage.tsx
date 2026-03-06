@@ -85,6 +85,7 @@ const AdsManagerPage = () => (
                 </div>
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
       </div>
