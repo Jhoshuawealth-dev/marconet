@@ -42,11 +42,21 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import PlatformCharterPage from "./pages/PlatformCharterPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminModerationPage from "./pages/admin/AdminModerationPage";
+import AdminTransactionsPage from "./pages/admin/AdminTransactionsPage";
+import AdminRequestsPage from "./pages/admin/AdminRequestsPage";
+import AdminRequestAccessPage from "./pages/AdminRequestAccessPage";
+import AdminRoute from "@/components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
 
 const P = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>{children}</ProtectedRoute>
+);
+const A = ({ children, superOnly }: { children: React.ReactNode; superOnly?: boolean }) => (
+  <AdminRoute superOnly={superOnly}>{children}</AdminRoute>
 );
 
 const AnimatedRoutes = () => {
@@ -91,6 +101,14 @@ const AnimatedRoutes = () => {
         <Route path="/verification" element={<P><VerificationPage /></P>} />
         <Route path="/fields" element={<P><FieldsPage /></P>} />
         <Route path="/market" element={<P><MarketPage /></P>} />
+        <Route path="/admin/request" element={<P><AdminRequestAccessPage /></P>} />
+
+        {/* Admin routes */}
+        <Route path="/admin" element={<A><AdminDashboardPage /></A>} />
+        <Route path="/admin/users" element={<A><AdminUsersPage /></A>} />
+        <Route path="/admin/moderation" element={<A><AdminModerationPage /></A>} />
+        <Route path="/admin/transactions" element={<A><AdminTransactionsPage /></A>} />
+        <Route path="/admin/requests" element={<A superOnly><AdminRequestsPage /></A>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
