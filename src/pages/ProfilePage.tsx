@@ -1,4 +1,4 @@
-import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNdc } from "@/contexts/NdcContext";
 import PageTransition from "@/components/app/PageTransition";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { useEffect, useState } from "react";
 
 const settingsItems = [
