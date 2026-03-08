@@ -321,9 +321,8 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
       supabase.from("community_posts").insert({
         user_id: userId, author_name: authorName, title, body,
         topic: "Community", post_type: "text", status: "pending",
-      }).then(({ data }) => {
-        if (data && Array.isArray(data) && data[0]) {
-          // Update local ID with DB ID
+      }).select("id").then(({ data }) => {
+        if (data && data.length > 0) {
           setCommunityPosts(prev => prev.map(p =>
             p.id === newPost.id ? { ...p, id: data[0].id } : p
           ));
