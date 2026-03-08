@@ -1,59 +1,49 @@
 
 
-# NDC Economy & Community Rules Update
+## Admin Section Plan
 
-## What Changes
+### Database Changes
 
-### 1. NDC Exchange Rates
-Add currency conversion constants used in Transfer and Wallet pages:
-- 1 NDC = £5 (GBP)
-- 1 NDC = $7 (USD)
-- 1 NDC = ₦11,500 (NGN)
+1. **`user_roles` table** with `app_role` enum (`admin`, `super_admin`, `user`) — stores role assignments, secured by RLS so only admins/super_admins can read/manage roles.
 
-### 2. Updated Community Rewards (currently: Like=5, Comment=10, Share=20)
-- Like = **1 NDC**
-- Comment = **3 NDC**
-- Share = **5 NDC**
-- Picture upload = **7 NDC**
-- Video upload = **10 NDC**
+2. **`admin_requests` table** — users can submit a request for admin access; super_admins approve/reject. Columns: `user_id`, `status` (pending/approved/rejected), `requested_at`, `reviewed_by`, `reviewed_at`.
 
-### 3. Content Rules & Posting Limits (currently: 2 posts/day for all)
-- Video posts: **1 per week**
-- Picture posts: **2 per week**
-- Harvest actions: **4 per month**
-- All farm content must be tagged as "Real Farm" (not AI-generated) — add a checkbox/disclaimer on the post creation form
+3. **`has_role()` security definer function** — prevents RLS recursion when checking roles in policies.
 
-### 4. Transfer Fee
-- **5% fee** on all transfers, charged in the destination currency
-- Show fee breakdown before confirming transfer (amount, fee, total deducted)
+4. **RLS policies** on `user_roles` and `admin_requests` tables, plus updated policies on existing tables (e.g., `community_posts`, `profiles`, `ndc_transactions`) to grant admin read access.
 
----
+### Pages & Routes
 
-## Files to Modify
+All admin routes under `/admin/*`, protected by a new `AdminRoute` wrapper that checks `has_role(uid, 'admin')` or `'super_admin'`.
 
-### `src/contexts/NdcContext.tsx`
-- Update reward amounts: like→1, comment→3, share→5
-- Add `weeklyVideoPosts`, `weeklyPicturePosts`, `monthlyHarvests` counters
-- Add `createMediaPost(type: "picture"|"video", title, body)` with weekly limits and appropriate NDC rewards
-- Track harvest limit (4/month)
+| Route | Purpose |
+|---|---|
+| `/admin` | Dashboard with KPI cards: total users, total NDC mined, pending posts, active stakes |
+| `/admin/users` | User list with search, view profiles, suspend/delete accounts |
+| `/admin/moderation` | Pending community posts queue — approve/reject with one click |
+| `/admin/transactions` | All NDC transactions across platform, filterable by user/type/date |
+| `/admin/requests` | Admin access requests — super_admin approves/rejects (only visible to super_admins) |
 
-### `src/pages/CommunityPage.tsx`
-- Update reward display text to match new values
-- Expand post creation dialog: add post type selector (Text / Picture / Video)
-- Add "Real Farm Content" checkbox — required before submitting picture/video posts
-- Show weekly limits in the daily limits banner (videos: X/1, pictures: X/2)
-- Update toast messages with new NDC amounts
+### Components
 
-### `src/pages/TransferPage.tsx`
-- Add currency selector (GBP £, USD $, NGN ₦) with exchange rates
-- Calculate and display 5% fee in selected currency
-- Show breakdown: NDC amount → converted value → fee → net amount received
-- Deduct full NDC amount (including fee equivalent) from balance
+- **`AdminLayout.tsx`** — sidebar navigation for admin pages (separate from the main app bottom nav)
+- **`AdminRoute.tsx`** — checks user role via a DB query, redirects non-admins to `/dashboard`
+- **Admin dashboard cards** — query aggregate data from profiles, transactions, community_posts tables
 
-### `src/pages/WalletPage.tsx`
-- Display NDC balance with equivalent values in all 3 currencies
-- Show exchange rate reference
+### Access Flow
 
-### `src/pages/DashboardPage.tsx`
-- Update harvest action to respect 4/month limit
+1. Authenticated user navigates to `/admin/request` and submits a request
+2. Request is stored in `admin_requests` with status `pending`
+3. A super_admin views `/admin/requests`, approves → inserts row into `user_roles`
+4. User now sees admin nav and can access `/admin/*`
+
+### Bootstrap
+
+The first super_admin will be seeded via a migration (your email/user_id) since there's no existing admin to approve the first one.
+
+### Security
+
+- All admin queries use the `has_role()` security definer function
+- Role checks happen server-side via RLS — no client-side role storage
+- Admin routes are both client-gated (redirect) and server-gated (RLS denies data)
 
