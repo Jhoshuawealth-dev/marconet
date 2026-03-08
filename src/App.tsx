@@ -42,6 +42,13 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import PlatformCharterPage from "./pages/PlatformCharterPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminModerationPage from "./pages/admin/AdminModerationPage";
+import AdminTransactionsPage from "./pages/admin/AdminTransactionsPage";
+import AdminRequestsPage from "./pages/admin/AdminRequestsPage";
+import AdminRequestAccessPage from "./pages/AdminRequestAccessPage";
+import AdminRoute from "@/components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
 
