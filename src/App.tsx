@@ -6,11 +6,14 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { NdcProvider } from "@/contexts/NdcContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AnimatePresence } from "framer-motion";
+import ProtectedRoute from "@/components/app/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import OnboardingPage from "./pages/OnboardingPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import MiningPage from "./pages/MiningPage";
 import WalletPage from "./pages/WalletPage";
@@ -42,36 +45,22 @@ import PlatformCharterPage from "./pages/PlatformCharterPage";
 
 const queryClient = new QueryClient();
 
+const P = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>{children}</ProtectedRoute>
+);
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        {/* Public routes */}
         <Route path="/" element={<Index />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/mining" element={<MiningPage />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path="/wallet/fund" element={<FundWalletPage />} />
-        <Route path="/wallet/transfer" element={<TransferPage />} />
-        <Route path="/invest" element={<InvestPage />} />
-        <Route path="/invest/:id" element={<ProjectDetailsPage />} />
-        <Route path="/invest/:id/stake" element={<StakePage />} />
-        <Route path="/community" element={<CommunityPage />} />
-        <Route path="/education" element={<EducationPage />} />
-        <Route path="/ads" element={<AdsManagerPage />} />
-        <Route path="/ads/create" element={<CreateCampaignPage />} />
-        <Route path="/ads/:id" element={<CampaignDetailPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/personal" element={<PersonalInfoPage />} />
-        <Route path="/profile/security" element={<SecurityPage />} />
-        <Route path="/profile/farms" element={<FarmAssetsPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/verification" element={<VerificationPage />} />
-        <Route path="/fields" element={<FieldsPage />} />
-        <Route path="/market" element={<MarketPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/careers" element={<CareersPage />} />
         <Route path="/blog" element={<BlogPage />} />
@@ -79,6 +68,30 @@ const AnimatedRoutes = () => {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/platform-charter" element={<PlatformCharterPage />} />
+
+        {/* Protected routes */}
+        <Route path="/dashboard" element={<P><DashboardPage /></P>} />
+        <Route path="/mining" element={<P><MiningPage /></P>} />
+        <Route path="/wallet" element={<P><WalletPage /></P>} />
+        <Route path="/wallet/fund" element={<P><FundWalletPage /></P>} />
+        <Route path="/wallet/transfer" element={<P><TransferPage /></P>} />
+        <Route path="/invest" element={<P><InvestPage /></P>} />
+        <Route path="/invest/:id" element={<P><ProjectDetailsPage /></P>} />
+        <Route path="/invest/:id/stake" element={<P><StakePage /></P>} />
+        <Route path="/community" element={<P><CommunityPage /></P>} />
+        <Route path="/education" element={<P><EducationPage /></P>} />
+        <Route path="/ads" element={<P><AdsManagerPage /></P>} />
+        <Route path="/ads/create" element={<P><CreateCampaignPage /></P>} />
+        <Route path="/ads/:id" element={<P><CampaignDetailPage /></P>} />
+        <Route path="/profile" element={<P><ProfilePage /></P>} />
+        <Route path="/profile/personal" element={<P><PersonalInfoPage /></P>} />
+        <Route path="/profile/security" element={<P><SecurityPage /></P>} />
+        <Route path="/profile/farms" element={<P><FarmAssetsPage /></P>} />
+        <Route path="/notifications" element={<P><NotificationsPage /></P>} />
+        <Route path="/verification" element={<P><VerificationPage /></P>} />
+        <Route path="/fields" element={<P><FieldsPage /></P>} />
+        <Route path="/market" element={<P><MarketPage /></P>} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
@@ -88,15 +101,15 @@ const AnimatedRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <NdcProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <NdcProvider>
+            <Toaster />
+            <Sonner />
             <AnimatedRoutes />
-          </BrowserRouter>
-        </NdcProvider>
-      </AuthProvider>
+          </NdcProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
