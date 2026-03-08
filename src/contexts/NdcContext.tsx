@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Exchange rates
 export const NDC_RATES = {
@@ -62,6 +64,7 @@ interface NdcContextType {
   stopMining: () => void;
   stakedProjects: Record<string, number>;
   stakeProject: (projectId: string, amount: number) => boolean;
+  loading: boolean;
 }
 
 const NdcContext = createContext<NdcContextType | null>(null);
@@ -72,163 +75,297 @@ export const useNdc = () => {
   return ctx;
 };
 
-// localStorage helpers
-const STORAGE_KEY = "ndc_state";
-
-interface PersistedState {
-  balance: number;
-  transactions: Transaction[];
-  enrolledCourses: string[];
-  communityPosts: CommunityPost[];
-  stakedProjects: Record<string, number>;
-  likesUsedToday: string[];
-  commentsUsedToday: string[];
-  sharesUsedToday: string[];
-  dailyPosts: number;
-  weeklyVideoPosts: number;
-  weeklyPicturePosts: number;
-  monthlyHarvests: number;
-}
-
-function loadState(): Partial<PersistedState> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return {};
-}
-
-function saveState(state: PersistedState) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {}
-}
-
 export const NdcProvider = ({ children }: { children: ReactNode }) => {
-  const saved = loadState();
+  const { user } = useAuth();
+  const userId = user?.id;
 
-  const [balance, setBalance] = useState(saved.balance ?? 0);
-  const [transactions, setTransactions] = useState<Transaction[]>(saved.transactions ?? []);
-  const [enrolledCourses, setEnrolledCourses] = useState<string[]>(saved.enrolledCourses ?? []);
-  const [likesUsedToday, setLikesUsedToday] = useState<string[]>(saved.likesUsedToday ?? []);
-  const [commentsUsedToday, setCommentsUsedToday] = useState<string[]>(saved.commentsUsedToday ?? []);
-  const [sharesUsedToday, setSharesToday] = useState<string[]>(saved.sharesUsedToday ?? []);
-  const [dailyPosts, setDailyPosts] = useState(saved.dailyPosts ?? 0);
-  const [weeklyVideoPosts, setWeeklyVideoPosts] = useState(saved.weeklyVideoPosts ?? 0);
-  const [weeklyPicturePosts, setWeeklyPicturePosts] = useState(saved.weeklyPicturePosts ?? 0);
-  const [monthlyHarvests, setMonthlyHarvests] = useState(saved.monthlyHarvests ?? 0);
+  const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
+  const [likesUsedToday, setLikesUsedToday] = useState<string[]>([]);
+  const [commentsUsedToday, setCommentsUsedToday] = useState<string[]>([]);
+  const [sharesUsedToday, setSharesToday] = useState<string[]>([]);
+  const [dailyPosts, setDailyPosts] = useState(0);
+  const [weeklyVideoPosts, setWeeklyVideoPosts] = useState(0);
+  const [weeklyPicturePosts, setWeeklyPicturePosts] = useState(0);
+  const [monthlyHarvests, setMonthlyHarvests] = useState(0);
   const [isMining, setIsMining] = useState(false);
   const [miningSession, setMiningSession] = useState(0);
   const [miningInterval, setMiningInterval] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [stakedProjects, setStakedProjects] = useState<Record<string, number>>(saved.stakedProjects ?? {});
-  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(saved.communityPosts ?? []);
+  const [stakedProjects, setStakedProjects] = useState<Record<string, number>>({});
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Persist state on every change
+  // ─── Load all state from DB on auth ───
   useEffect(() => {
-    saveState({
-      balance, transactions, enrolledCourses, communityPosts, stakedProjects,
-      likesUsedToday, commentsUsedToday, sharesUsedToday,
-      dailyPosts, weeklyVideoPosts, weeklyPicturePosts, monthlyHarvests,
+    if (!userId) {
+      setBalance(0);
+      setTransactions([]);
+      setEnrolledCourses([]);
+      setStakedProjects({});
+      setCommunityPosts([]);
+      setLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        // Profile (balance)
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("ndc_balance")
+          .eq("user_id", userId)
+          .single();
+        if (profile) setBalance(profile.ndc_balance);
+
+        // Transactions
+        const { data: txns } = await supabase
+          .from("ndc_transactions")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (txns) {
+          setTransactions(txns.map(t => ({
+            id: t.id,
+            title: t.title,
+            desc: t.description || "",
+            amount: t.amount,
+            type: t.type as "earn" | "spend",
+            date: new Date(t.created_at).toLocaleString(),
+          })));
+        }
+
+        // Enrolled courses
+        const { data: courses } = await supabase
+          .from("enrolled_courses")
+          .select("course_id")
+          .eq("user_id", userId);
+        if (courses) setEnrolledCourses(courses.map(c => c.course_id));
+
+        // Staked projects
+        const { data: stakes } = await supabase
+          .from("staked_projects")
+          .select("project_id, amount")
+          .eq("user_id", userId);
+        if (stakes) {
+          const map: Record<string, number> = {};
+          stakes.forEach(s => { map[s.project_id] = s.amount; });
+          setStakedProjects(map);
+        }
+
+        // Community posts (all visible)
+        const { data: posts } = await supabase
+          .from("community_posts")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (posts) {
+          // Load comments for each post
+          const postIds = posts.map(p => p.id);
+          const { data: comments } = await supabase
+            .from("community_comments")
+            .select("*")
+            .in("post_id", postIds.length > 0 ? postIds : ["__none__"])
+            .order("created_at", { ascending: true });
+
+          const commentsByPost: Record<string, { author: string; text: string }[]> = {};
+          comments?.forEach(c => {
+            if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+            commentsByPost[c.post_id].push({ author: c.author_name, text: c.content });
+          });
+
+          setCommunityPosts(posts.map(p => ({
+            id: p.id,
+            author: p.author_name,
+            avatar: p.author_avatar,
+            title: p.title,
+            body: p.body,
+            likes: p.likes,
+            comments: commentsByPost[p.id] || [],
+            shares: p.shares,
+            time: getTimeAgo(p.created_at),
+            status: p.status as "pending" | "approved",
+            topic: p.topic,
+            postType: p.post_type as "text" | "picture" | "video",
+          })));
+        }
+      } catch (err) {
+        console.error("Failed to load NDC state:", err);
+      }
+      setLoading(false);
+    };
+
+    load();
+  }, [userId]);
+
+  // ─── DB helpers ───
+  const updateBalance = useCallback(async (newBalance: number) => {
+    if (!userId) return;
+    await supabase.from("profiles").update({ ndc_balance: newBalance }).eq("user_id", userId);
+  }, [userId]);
+
+  const insertTransaction = useCallback(async (amount: number, title: string, desc: string, type: "earn" | "spend") => {
+    if (!userId) return;
+    await supabase.from("ndc_transactions").insert({
+      user_id: userId, title, description: desc, amount, type,
     });
-  }, [balance, transactions, enrolledCourses, communityPosts, stakedProjects,
-      likesUsedToday, commentsUsedToday, sharesUsedToday,
-      dailyPosts, weeklyVideoPosts, weeklyPicturePosts, monthlyHarvests]);
+  }, [userId]);
 
-  const addTransaction = useCallback((amount: number, title: string, desc: string, type: "earn" | "spend") => {
-    setTransactions(prev => [{
-      id: Date.now().toString(),
-      title, desc, amount, type,
-      date: new Date().toLocaleString()
-    }, ...prev]);
-  }, []);
-
+  // ─── Actions ───
   const earn = useCallback((amount: number, title: string, desc: string) => {
-    setBalance(b => b + amount);
-    addTransaction(amount, title, desc, "earn");
-  }, [addTransaction]);
+    setBalance(b => {
+      const nb = b + amount;
+      updateBalance(nb);
+      return nb;
+    });
+    const tx: Transaction = {
+      id: Date.now().toString(), title, desc, amount, type: "earn",
+      date: new Date().toLocaleString(),
+    };
+    setTransactions(prev => [tx, ...prev]);
+    insertTransaction(amount, title, desc, "earn");
+  }, [updateBalance, insertTransaction]);
 
   const spend = useCallback((amount: number, title: string, desc: string): boolean => {
     if (balance < amount) return false;
-    setBalance(b => b - amount);
-    addTransaction(amount, title, desc, "spend");
+    setBalance(b => {
+      const nb = b - amount;
+      updateBalance(nb);
+      return nb;
+    });
+    const tx: Transaction = {
+      id: Date.now().toString(), title, desc, amount, type: "spend",
+      date: new Date().toLocaleString(),
+    };
+    setTransactions(prev => [tx, ...prev]);
+    insertTransaction(amount, title, desc, "spend");
     return true;
-  }, [balance, addTransaction]);
+  }, [balance, updateBalance, insertTransaction]);
 
   const enrollCourse = useCallback((courseId: string): boolean => {
     if (enrolledCourses.includes(courseId)) return true;
     if (balance < 200) return false;
-    setBalance(b => b - 200);
+    setBalance(b => {
+      const nb = b - 200;
+      updateBalance(nb);
+      return nb;
+    });
     setEnrolledCourses(prev => [...prev, courseId]);
-    addTransaction(200, "Course Enrollment", `Enrolled in course`, "spend");
+    insertTransaction(200, "Course Enrollment", "Enrolled in course", "spend");
+    if (userId) {
+      supabase.from("enrolled_courses").insert({ user_id: userId, course_id: courseId });
+    }
     return true;
-  }, [balance, enrolledCourses, addTransaction]);
+  }, [balance, enrolledCourses, userId, updateBalance, insertTransaction]);
 
   const likePost = useCallback((postId: string): boolean => {
     if (likesUsedToday.length >= 2 && !likesUsedToday.includes(postId)) return false;
     if (likesUsedToday.includes(postId)) return false;
     setLikesUsedToday(prev => [...prev, postId]);
-    setCommunityPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+    setCommunityPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        if (userId) supabase.from("community_posts").update({ likes: p.likes + 1 }).eq("id", postId);
+        return { ...p, likes: p.likes + 1 };
+      }
+      return p;
+    }));
     earn(1, "Like Reward", "Liked a community post");
     return true;
-  }, [likesUsedToday, earn]);
+  }, [likesUsedToday, earn, userId]);
 
   const commentPost = useCallback((postId: string, comment: string): boolean => {
     if (commentsUsedToday.length >= 2 && !commentsUsedToday.includes(postId)) return false;
     if (commentsUsedToday.includes(postId)) return false;
     setCommentsUsedToday(prev => [...prev, postId]);
-    setCommunityPosts(prev => prev.map(p => p.id === postId ? { ...p, comments: [...p.comments, { author: "You", text: comment }] } : p));
+    const authorName = "You";
+    setCommunityPosts(prev => prev.map(p =>
+      p.id === postId ? { ...p, comments: [...p.comments, { author: authorName, text: comment }] } : p
+    ));
+    if (userId) {
+      supabase.from("community_comments").insert({
+        post_id: postId, user_id: userId, author_name: authorName, content: comment,
+      });
+    }
     earn(3, "Comment Reward", "Commented on a community post");
     return true;
-  }, [commentsUsedToday, earn]);
+  }, [commentsUsedToday, earn, userId]);
 
   const sharePost = useCallback((postId: string): boolean => {
     if (sharesUsedToday.length >= 2 && !sharesUsedToday.includes(postId)) return false;
     if (sharesUsedToday.includes(postId)) return false;
     setSharesToday(prev => [...prev, postId]);
-    setCommunityPosts(prev => prev.map(p => p.id === postId ? { ...p, shares: p.shares + 1 } : p));
+    setCommunityPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        if (userId) supabase.from("community_posts").update({ shares: p.shares + 1 }).eq("id", postId);
+        return { ...p, shares: p.shares + 1 };
+      }
+      return p;
+    }));
     earn(5, "Share Reward", "Shared a community post");
     return true;
-  }, [sharesUsedToday, earn]);
+  }, [sharesUsedToday, earn, userId]);
 
   const createPost = useCallback((title: string, body: string): boolean => {
     if (dailyPosts >= 2) return false;
+    const authorName = "You";
     const newPost: CommunityPost = {
-      id: `user-${Date.now()}`,
-      author: "You", avatar: "YO", topic: "Community",
+      id: `user-${Date.now()}`, author: authorName, avatar: "YO", topic: "Community",
       title, body, likes: 0, comments: [], shares: 0,
-      time: "Just now", status: "pending", postType: "text"
+      time: "Just now", status: "pending", postType: "text",
     };
     setCommunityPosts(prev => [newPost, ...prev]);
     setDailyPosts(p => p + 1);
+    if (userId) {
+      supabase.from("community_posts").insert({
+        user_id: userId, author_name: authorName, title, body,
+        topic: "Community", post_type: "text", status: "pending",
+      }).then(({ data }) => {
+        if (data && Array.isArray(data) && data[0]) {
+          // Update local ID with DB ID
+          setCommunityPosts(prev => prev.map(p =>
+            p.id === newPost.id ? { ...p, id: data[0].id } : p
+          ));
+        }
+      });
+    }
     return true;
-  }, [dailyPosts]);
+  }, [dailyPosts, userId]);
 
   const createMediaPost = useCallback((type: "picture" | "video", title: string, body: string): boolean => {
     if (type === "video" && weeklyVideoPosts >= 1) return false;
     if (type === "picture" && weeklyPicturePosts >= 2) return false;
     const reward = type === "picture" ? 7 : 10;
+    const authorName = "You";
     const newPost: CommunityPost = {
-      id: `user-${Date.now()}`,
-      author: "You", avatar: "YO", topic: "Farm Content",
+      id: `user-${Date.now()}`, author: authorName, avatar: "YO", topic: "Farm Content",
       title, body, likes: 0, comments: [], shares: 0,
-      time: "Just now", status: "pending", postType: type
+      time: "Just now", status: "pending", postType: type,
     };
     setCommunityPosts(prev => [newPost, ...prev]);
     if (type === "video") setWeeklyVideoPosts(p => p + 1);
     else setWeeklyPicturePosts(p => p + 1);
     earn(reward, `${type === "picture" ? "Picture" : "Video"} Upload Reward`, `Uploaded a ${type} post (+${reward} NDC)`);
+    if (userId) {
+      supabase.from("community_posts").insert({
+        user_id: userId, author_name: authorName, title, body,
+        topic: "Farm Content", post_type: type, status: "pending",
+      });
+    }
     return true;
-  }, [weeklyVideoPosts, weeklyPicturePosts, earn]);
+  }, [weeklyVideoPosts, weeklyPicturePosts, earn, userId]);
 
   const approvePost = useCallback((postId: string) => {
     setCommunityPosts(prev => prev.map(p => {
       if (p.id === postId && p.status === "pending") {
+        if (userId) supabase.from("community_posts").update({ status: "approved" }).eq("id", postId);
         earn(200, "Post Approved", "Your community post was approved");
         return { ...p, status: "approved" };
       }
       return p;
     }));
-  }, [earn]);
+  }, [earn, userId]);
 
   const harvestAction = useCallback((): boolean => {
     if (monthlyHarvests >= 4) return false;
@@ -258,11 +395,23 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
 
   const stakeProject = useCallback((projectId: string, amount: number): boolean => {
     if (balance < amount) return false;
-    setBalance(b => b - amount);
-    setStakedProjects(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + amount }));
-    addTransaction(amount, "Stake Investment", `Staked in project`, "spend");
+    setBalance(b => {
+      const nb = b - amount;
+      updateBalance(nb);
+      return nb;
+    });
+    setStakedProjects(prev => {
+      const newAmount = (prev[projectId] || 0) + amount;
+      if (userId) {
+        // Upsert stake
+        supabase.from("staked_projects")
+          .upsert({ user_id: userId, project_id: projectId, amount: newAmount }, { onConflict: "user_id,project_id" });
+      }
+      return { ...prev, [projectId]: newAmount };
+    });
+    insertTransaction(amount, "Stake Investment", `Staked in project`, "spend");
     return true;
-  }, [balance, addTransaction]);
+  }, [balance, userId, updateBalance, insertTransaction]);
 
   return (
     <NdcContext.Provider value={{
@@ -276,8 +425,21 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
       communityPosts, createPost, createMediaPost, approvePost, harvestAction,
       isMining, miningSession, startMining, stopMining,
       stakedProjects, stakeProject,
+      loading,
     }}>
       {children}
     </NdcContext.Provider>
   );
 };
+
+// Helper
+function getTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
