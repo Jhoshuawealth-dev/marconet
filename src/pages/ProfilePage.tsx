@@ -1,11 +1,13 @@
-import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut } from "lucide-react";
+import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import BottomNav from "@/components/app/BottomNav";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNdc } from "@/contexts/NdcContext";
 import PageTransition from "@/components/app/PageTransition";
+import { useEffect, useState } from "react";
 
 const settingsItems = [
   { icon: User, label: "Personal Information", to: "/profile/personal" },
@@ -18,6 +20,17 @@ const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const { balance } = useNdc();
   const navigate = useNavigate();
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDark]);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Farmer";
   const initials = displayName.slice(0, 2).toUpperCase();
@@ -84,7 +97,21 @@ const ProfilePage = () => {
                     <CardContent className="p-3.5 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
                         <item.icon className="h-4 w-4 text-muted-foreground" />
-                      </div>
+          </div>
+
+          {/* Appearance */}
+          <div>
+            <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Appearance</h2>
+            <Card className="border border-border/60 shadow-premium rounded-2xl">
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
+                  {isDark ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
+                </div>
+                <span className="flex-1 text-[13px] font-semibold text-foreground">Dark Mode</span>
+                <Switch checked={isDark} onCheckedChange={setIsDark} />
+              </CardContent>
+            </Card>
+          </div>
                       <span className="flex-1 text-[13px] font-semibold text-foreground">{item.label}</span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </CardContent>
