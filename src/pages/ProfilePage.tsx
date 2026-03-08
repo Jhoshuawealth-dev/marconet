@@ -20,6 +20,7 @@ const settingsItems = [
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const { balance } = useNdc();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
