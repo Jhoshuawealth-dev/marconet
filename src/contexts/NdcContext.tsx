@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 
 // Exchange rates
 export const NDC_RATES = {
@@ -38,7 +38,6 @@ interface NdcContextType {
   spend: (amount: number, title: string, desc: string) => boolean;
   enrolledCourses: string[];
   enrollCourse: (courseId: string) => boolean;
-  // Community
   dailyLikes: number;
   dailyComments: number;
   dailyShares: number;
@@ -57,12 +56,10 @@ interface NdcContextType {
   createMediaPost: (type: "picture" | "video", title: string, body: string) => boolean;
   approvePost: (postId: string) => void;
   harvestAction: () => boolean;
-  // Mining
   isMining: boolean;
   miningSession: number;
   startMining: () => void;
   stopMining: () => void;
-  // Staking
   stakedProjects: Record<string, number>;
   stakeProject: (projectId: string, amount: number) => boolean;
 }
@@ -75,26 +72,67 @@ export const useNdc = () => {
   return ctx;
 };
 
+// localStorage helpers
+const STORAGE_KEY = "ndc_state";
+
+interface PersistedState {
+  balance: number;
+  transactions: Transaction[];
+  enrolledCourses: string[];
+  communityPosts: CommunityPost[];
+  stakedProjects: Record<string, number>;
+  likesUsedToday: string[];
+  commentsUsedToday: string[];
+  sharesUsedToday: string[];
+  dailyPosts: number;
+  weeklyVideoPosts: number;
+  weeklyPicturePosts: number;
+  monthlyHarvests: number;
+}
+
+function loadState(): Partial<PersistedState> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return {};
+}
+
+function saveState(state: PersistedState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
 export const NdcProvider = ({ children }: { children: ReactNode }) => {
-  const [balance, setBalance] = useState(7420);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
-  const [likesUsedToday, setLikesUsedToday] = useState<string[]>([]);
-  const [commentsUsedToday, setCommentsUsedToday] = useState<string[]>([]);
-  const [sharesUsedToday, setSharesToday] = useState<string[]>([]);
-  const [dailyPosts, setDailyPosts] = useState(0);
-  const [weeklyVideoPosts, setWeeklyVideoPosts] = useState(0);
-  const [weeklyPicturePosts, setWeeklyPicturePosts] = useState(0);
-  const [monthlyHarvests, setMonthlyHarvests] = useState(0);
+  const saved = loadState();
+
+  const [balance, setBalance] = useState(saved.balance ?? 0);
+  const [transactions, setTransactions] = useState<Transaction[]>(saved.transactions ?? []);
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>(saved.enrolledCourses ?? []);
+  const [likesUsedToday, setLikesUsedToday] = useState<string[]>(saved.likesUsedToday ?? []);
+  const [commentsUsedToday, setCommentsUsedToday] = useState<string[]>(saved.commentsUsedToday ?? []);
+  const [sharesUsedToday, setSharesToday] = useState<string[]>(saved.sharesUsedToday ?? []);
+  const [dailyPosts, setDailyPosts] = useState(saved.dailyPosts ?? 0);
+  const [weeklyVideoPosts, setWeeklyVideoPosts] = useState(saved.weeklyVideoPosts ?? 0);
+  const [weeklyPicturePosts, setWeeklyPicturePosts] = useState(saved.weeklyPicturePosts ?? 0);
+  const [monthlyHarvests, setMonthlyHarvests] = useState(saved.monthlyHarvests ?? 0);
   const [isMining, setIsMining] = useState(false);
   const [miningSession, setMiningSession] = useState(0);
   const [miningInterval, setMiningInterval] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [stakedProjects, setStakedProjects] = useState<Record<string, number>>({});
-  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
-    { id: "c1", author: "Sarah K.", avatar: "SK", topic: "Digital Farming", title: "Best strategies for maximizing NDC yield this season?", body: "I've been experimenting with different staking intervals...", likes: 42, comments: [{ author: "James", text: "Great question!" }], shares: 5, time: "2h ago", status: "approved", postType: "text" },
-    { id: "c2", author: "James O.", avatar: "JO", topic: "Investment", title: "ROI comparison: Cassava vs Maize projects", body: "Looking at the data from Q4, cassava projects had...", likes: 35, comments: [{ author: "Ada", text: "Interesting analysis" }], shares: 3, time: "4h ago", status: "approved", postType: "picture" },
-    { id: "c3", author: "Ada M.", avatar: "AM", topic: "Community", title: "New governance proposal: Community fund allocation", body: "Proposing we allocate 5% of yields to community...", likes: 67, comments: [{ author: "Sarah", text: "I support this!" }], shares: 8, time: "6h ago", status: "approved", postType: "text" },
-  ]);
+  const [stakedProjects, setStakedProjects] = useState<Record<string, number>>(saved.stakedProjects ?? {});
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(saved.communityPosts ?? []);
+
+  // Persist state on every change
+  useEffect(() => {
+    saveState({
+      balance, transactions, enrolledCourses, communityPosts, stakedProjects,
+      likesUsedToday, commentsUsedToday, sharesUsedToday,
+      dailyPosts, weeklyVideoPosts, weeklyPicturePosts, monthlyHarvests,
+    });
+  }, [balance, transactions, enrolledCourses, communityPosts, stakedProjects,
+      likesUsedToday, commentsUsedToday, sharesUsedToday,
+      dailyPosts, weeklyVideoPosts, weeklyPicturePosts, monthlyHarvests]);
 
   const addTransaction = useCallback((amount: number, title: string, desc: string, type: "earn" | "spend") => {
     setTransactions(prev => [{
@@ -125,7 +163,6 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
     return true;
   }, [balance, enrolledCourses, addTransaction]);
 
-  // Updated rewards: Like=1, Comment=3, Share=5
   const likePost = useCallback((postId: string): boolean => {
     if (likesUsedToday.length >= 2 && !likesUsedToday.includes(postId)) return false;
     if (likesUsedToday.includes(postId)) return false;
