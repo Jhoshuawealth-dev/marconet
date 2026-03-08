@@ -4,19 +4,9 @@ import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { Link } from "react-router-dom";
-import { useNdc } from "@/contexts/NdcContext";
+import { useNdc, NDC_RATES } from "@/contexts/NdcContext";
+import { useAuth } from "@/contexts/AuthContext";
 import PageTransition from "@/components/app/PageTransition";
-
-const yieldData = [
-  { day: "Mon", ndc: 120 }, { day: "Tue", ndc: 180 }, { day: "Wed", ndc: 150 },
-  { day: "Thu", ndc: 220 }, { day: "Fri", ndc: 280 }, { day: "Sat", ndc: 250 }, { day: "Sun", ndc: 310 },
-];
-
-const activeFields = [
-  { name: "Green Valley Soy", maturity: 72, apr: "18.5%", status: "Growing", ndc: "2,400" },
-  { name: "Sunrise Maize Field", maturity: 45, apr: "22.0%", status: "Active", ndc: "1,200" },
-  { name: "Cassava Digital Farm", maturity: 90, apr: "15.2%", status: "Harvest Ready", ndc: "3,800" },
-];
 
 const quickLinks = [
   { label: "Mining", icon: Zap, to: "/mining", gradient: "gradient-accent" },
@@ -33,7 +23,28 @@ const moreLinks = [
 ];
 
 const DashboardPage = () => {
-  const { balance, monthlyHarvests, harvestAction } = useNdc();
+  const { balance, monthlyHarvests, harvestAction, transactions } = useNdc();
+  const { user } = useAuth();
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Farmer";
+  const initials = displayName.slice(0, 2).toUpperCase();
+
+  // Build yield data from recent transactions (last 7 days)
+  const yieldData = (() => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const now = new Date();
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dayLabel = days[d.getDay()];
+      const dayEarnings = transactions
+        .filter(t => t.type === "earn" && new Date(t.date).toDateString() === d.toDateString())
+        .reduce((sum, t) => sum + t.amount, 0);
+      data.push({ day: dayLabel, ndc: dayEarnings });
+    }
+    return data;
+  })();
 
   const harvestClick = () => {
     if (monthlyHarvests >= 4) {
@@ -51,16 +62,18 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-premium">
-                JF
+                {initials}
               </div>
               <div>
-                <p className="text-[11px] text-muted-foreground font-medium">Good morning</p>
-                <p className="font-display font-bold text-foreground text-[15px]">John Farmer</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Welcome back</p>
+                <p className="font-display font-bold text-foreground text-[15px]">{displayName}</p>
               </div>
             </div>
             <Link to="/notifications" className="relative w-11 h-11 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-premium transition-transform active:scale-95">
               <Bell className="h-[18px] w-[18px] text-muted-foreground" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card" />
+              {transactions.length > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card" />
+              )}
             </Link>
           </div>
 
@@ -73,12 +86,9 @@ const DashboardPage = () => {
               <div className="flex items-end gap-3 mt-2">
                 <p className="text-[32px] font-display font-extrabold tracking-tight leading-none text-metric">{balance.toLocaleString()}</p>
                 <span className="text-xs font-medium text-primary-foreground/50 mb-1">NDC</span>
-                <span className="flex items-center gap-0.5 text-[11px] font-semibold text-accent mb-1 ml-auto">
-                  <ArrowUpRight className="h-3 w-3" /> +12.4%
-                </span>
               </div>
               <p className="text-[11px] text-primary-foreground/40 mt-1.5 text-metric">
-                ≈ ₦{(balance * 11500).toLocaleString()} · £{(balance * 5).toLocaleString()} · ${(balance * 7).toLocaleString()}
+                ≈ ₦{(balance * NDC_RATES.NGN).toLocaleString()} · £{(balance * NDC_RATES.GBP).toLocaleString()} · ${(balance * NDC_RATES.USD).toLocaleString()}
               </p>
               <div className="flex gap-3 mt-5">
                 <Link to="/invest" className="flex-1">
@@ -97,25 +107,35 @@ const DashboardPage = () => {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-display font-bold text-foreground text-[15px]">Yield Trend</h2>
-              <span className="text-[11px] text-muted-foreground font-medium">This Week</span>
+              <span className="text-[11px] text-muted-foreground font-medium">Last 7 Days</span>
             </div>
             <Card className="border border-border/60 shadow-premium rounded-2xl">
               <CardContent className="p-5 pb-3">
-                <ResponsiveContainer width="100%" height={140}>
-                  <AreaChart data={yieldData}>
-                    <defs>
-                      <linearGradient id="ndcGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(152, 40%, 24%)" stopOpacity={0.2} />
-                        <stop offset="100%" stopColor="hsl(152, 40%, 24%)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'hsl(150, 5%, 42%)' }} axisLine={false} tickLine={false} />
-                    <YAxis hide />
-                    <Tooltip contentStyle={{ borderRadius: 14, fontSize: 12, border: "1px solid hsl(40, 12%, 88%)", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", fontFamily: "'DM Sans'" }}
-                      formatter={(v: number) => [`${v} NDC`, "Yield"]} />
-                    <Area type="monotone" dataKey="ndc" stroke="hsl(152, 40%, 24%)" strokeWidth={2.5} fill="url(#ndcGrad)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {yieldData.some(d => d.ndc > 0) ? (
+                  <ResponsiveContainer width="100%" height={140}>
+                    <AreaChart data={yieldData}>
+                      <defs>
+                        <linearGradient id="ndcGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(152, 40%, 24%)" stopOpacity={0.2} />
+                          <stop offset="100%" stopColor="hsl(152, 40%, 24%)" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'hsl(150, 5%, 42%)' }} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip contentStyle={{ borderRadius: 14, fontSize: 12, border: "1px solid hsl(40, 12%, 88%)", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", fontFamily: "'DM Sans'" }}
+                        formatter={(v: number) => [`${v} NDC`, "Yield"]} />
+                      <Area type="monotone" dataKey="ndc" stroke="hsl(152, 40%, 24%)" strokeWidth={2.5} fill="url(#ndcGrad)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[140px] flex items-center justify-center text-center">
+                    <div>
+                      <Leaf className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-[12px] text-muted-foreground">No yield activity yet</p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-0.5">Start mining or investing to see trends</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -142,35 +162,30 @@ const DashboardPage = () => {
             ))}
           </div>
 
-          {/* Active Fields */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display font-bold text-foreground text-[15px]">Active Fields</h2>
-              <Link to="/fields" className="text-[11px] text-primary font-semibold">View All</Link>
-            </div>
-            <div className="space-y-3">
-              {activeFields.map((f) => (
-                <Card key={f.name} className="border border-border/60 shadow-premium rounded-2xl overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <h3 className="font-display font-bold text-foreground text-[13px]">{f.name}</h3>
-                      <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${f.status === "Harvest Ready" ? "bg-accent/15 text-accent-foreground" : "bg-primary/8 text-primary"}`}>
-                        {f.status}
+          {/* Recent Activity */}
+          {transactions.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-display font-bold text-foreground text-[15px]">Recent Activity</h2>
+                <Link to="/notifications" className="text-[11px] text-primary font-semibold">View All</Link>
+              </div>
+              <div className="space-y-2">
+                {transactions.slice(0, 3).map((t) => (
+                  <Card key={t.id} className="border border-border/60 shadow-premium rounded-2xl">
+                    <CardContent className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-[12px] font-bold text-foreground">{t.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{t.desc}</p>
+                      </div>
+                      <span className={`text-[12px] font-bold text-metric ${t.type === "earn" ? "text-primary" : "text-destructive"}`}>
+                        {t.type === "earn" ? "+" : "-"}{t.amount} NDC
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-3">
-                      <span>APR: <strong className="text-foreground">{f.apr}</strong></span>
-                      <span className="text-metric">{f.ndc} NDC</span>
-                    </div>
-                    <div className="w-full h-[6px] bg-muted rounded-full overflow-hidden">
-                      <div className="h-full gradient-primary rounded-full transition-all" style={{ width: `${f.maturity}%` }} />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1.5">{f.maturity}% maturity</p>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <BottomNav />
       </div>

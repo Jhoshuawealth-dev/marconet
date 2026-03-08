@@ -1,18 +1,11 @@
 import { useState, useEffect } from "react";
-import { Zap, Cpu, TrendingUp, Wifi, WifiOff, Clock, Gift, ShieldCheck } from "lucide-react";
+import { Zap, Cpu, TrendingUp, Wifi, WifiOff, Clock, Gift, ShieldCheck, Inbox } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
 import { useNdc } from "@/contexts/NdcContext";
 import { useToast } from "@/hooks/use-toast";
 import PageTransition from "@/components/app/PageTransition";
-
-const miningHistory = [
-  { id: 1, date: "Today, 2:30 PM", ndc: "+45 NDC", type: "AI Harvest", status: "Completed" },
-  { id: 2, date: "Today, 10:15 AM", ndc: "+32 NDC", type: "Data Mining", status: "Completed" },
-  { id: 3, date: "Yesterday", ndc: "+78 NDC", type: "Boost Mining", status: "Completed" },
-  { id: 4, date: "Mar 1", ndc: "+120 NDC", type: "AI Harvest", status: "Completed" },
-];
 
 const upgrades = [
   { name: "Hash Boost Pro", desc: "2x mining speed for 24h", cost: "500 NDC", icon: Zap },
@@ -21,8 +14,11 @@ const upgrades = [
 ];
 
 const MiningPage = () => {
-  const { isMining, miningSession, startMining, stopMining, balance } = useNdc();
+  const { isMining, miningSession, startMining, stopMining, balance, transactions } = useNdc();
   const { toast } = useToast();
+
+  // Show only mining-related transactions
+  const miningHistory = transactions.filter(t => t.title === "Mining Reward");
 
   const handleUpgrade = (name: string) => {
     toast({ title: "Coming Soon", description: `${name} will be available in the next update.` });
@@ -126,32 +122,39 @@ const MiningPage = () => {
             </div>
           </div>
 
-          {/* Mining History */}
+          {/* Mining History - Real data */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display font-bold text-foreground text-[15px]">Mining History</h2>
-              <button className="text-[11px] text-primary font-semibold">View All</button>
-            </div>
-            <div className="space-y-2">
-              {miningHistory.map((h) => (
-                <Card key={h.id} className="border border-border/60 shadow-premium rounded-2xl">
-                  <CardContent className="p-3.5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center">
-                        <Gift className="h-4 w-4 text-primary" />
+            <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Mining History</h2>
+            {miningHistory.length === 0 ? (
+              <Card className="border border-border/60 shadow-premium rounded-2xl">
+                <CardContent className="p-8 text-center">
+                  <Inbox className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-[13px] font-semibold text-foreground">No mining history</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Start mining to earn NDC rewards.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {miningHistory.slice(0, 10).map((h) => (
+                  <Card key={h.id} className="border border-border/60 shadow-premium rounded-2xl">
+                    <CardContent className="p-3.5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center">
+                          <Gift className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-bold text-foreground">{h.title}</p>
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-2.5 w-2.5" /> {h.date}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[12px] font-bold text-foreground">{h.type}</p>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-2.5 w-2.5" /> {h.date}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[12px] font-bold text-primary text-metric">{h.ndc}</span>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <span className="text-[12px] font-bold text-primary text-metric">+{h.amount} NDC</span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <BottomNav />
