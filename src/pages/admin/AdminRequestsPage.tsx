@@ -5,7 +5,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { Check, X, ShieldCheck, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminRequest {
@@ -31,7 +31,6 @@ const AdminRequestsPage = () => {
       .order("requested_at", { ascending: true });
     if (data) {
       setRequests(data);
-      // Fetch profile names for request user_ids
       const userIds = data.map((r) => r.user_id);
       if (userIds.length > 0) {
         const { data: profs } = await supabase
@@ -51,7 +50,6 @@ const AdminRequestsPage = () => {
   useEffect(() => { fetchRequests(); }, []);
 
   const handleAction = async (req: AdminRequest, approved: boolean) => {
-    // Update request status
     const { error: updateError } = await supabase
       .from("admin_requests")
       .update({
@@ -66,7 +64,6 @@ const AdminRequestsPage = () => {
       return;
     }
 
-    // If approved, insert role
     if (approved) {
       const { error: roleError } = await supabase
         .from("user_roles")
@@ -83,48 +80,87 @@ const AdminRequestsPage = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Access Requests</h1>
-          <p className="text-sm text-muted-foreground">{requests.length} pending requests</p>
+      <div className="space-y-6 max-w-5xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-display font-extrabold text-foreground">Admin Access Requests</h1>
+            <p className="text-[12px] text-muted-foreground font-medium mt-1">Manage who gets admin privileges</p>
+          </div>
+          <Card className="border border-border/60 shadow-premium rounded-2xl">
+            <CardContent className="p-3 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-accent" />
+              <span className="text-[13px] font-bold text-foreground text-metric">{requests.length}</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Pending</span>
+            </CardContent>
+          </Card>
         </div>
 
         {loading ? (
-          <p className="text-muted-foreground text-sm">Loading...</p>
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <Card key={i} className="border border-border/60 rounded-2xl animate-pulse">
+                <CardContent className="p-5 h-28" />
+              </Card>
+            ))}
+          </div>
         ) : requests.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              No pending admin requests
+          <Card className="border border-border/60 shadow-premium rounded-2xl">
+            <CardContent className="py-16 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-[14px] font-bold text-foreground">No pending requests</p>
+              <p className="text-[12px] text-muted-foreground mt-1">All admin requests have been reviewed</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            {requests.map((req) => (
-              <Card key={req.id}>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">{profiles[req.user_id] || "Unknown"}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Requested {new Date(req.requested_at).toLocaleDateString()}
-                      </p>
+            {requests.map((req) => {
+              const name = profiles[req.user_id] || "Unknown";
+              return (
+                <Card key={req.id} className="border border-border/60 shadow-premium rounded-2xl hover:shadow-elevated transition-shadow">
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-[11px] font-bold">
+                          {name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-bold text-foreground">{name}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Requested {new Date(req.requested_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge className="bg-accent/10 text-accent border-0 text-[10px] font-bold rounded-lg">Pending</Badge>
                     </div>
-                    <Badge variant="outline">Pending</Badge>
-                  </div>
-                  {req.reason && (
-                    <p className="text-sm text-muted-foreground">{req.reason}</p>
-                  )}
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleAction(req, true)}>
-                      <Check className="h-3 w-3 mr-1" /> Approve
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleAction(req, false)}>
-                      <X className="h-3 w-3 mr-1" /> Reject
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    {req.reason && (
+                      <p className="text-[12px] text-muted-foreground leading-relaxed bg-muted/40 p-3 rounded-xl">
+                        "{req.reason}"
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleAction(req, true)}
+                        className="gradient-primary text-primary-foreground rounded-xl text-[11px] font-bold h-9 px-4 shadow-sm"
+                      >
+                        <Check className="h-3.5 w-3.5 mr-1.5" /> Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAction(req, false)}
+                        className="rounded-xl text-[11px] font-bold h-9 px-4 border-destructive/30 text-destructive hover:bg-destructive/10"
+                      >
+                        <X className="h-3.5 w-3.5 mr-1.5" /> Reject
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
