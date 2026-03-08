@@ -20,6 +20,17 @@ const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const { balance } = useNdc();
   const navigate = useNavigate();
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDark]);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Farmer";
   const initials = displayName.slice(0, 2).toUpperCase();
