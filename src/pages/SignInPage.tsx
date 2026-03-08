@@ -73,7 +73,7 @@ const SignInPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-[13px] font-semibold text-foreground">Password</Label>
-                  <a href="#" className="text-[12px] text-primary font-semibold">Forgot password?</a>
+                  <Link to="/forgot-password" className="text-[12px] text-primary font-semibold">Forgot password?</Link>
                 </div>
                 <div className="relative">
                   <Input id="password" type={showPw ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
