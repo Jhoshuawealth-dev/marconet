@@ -55,6 +55,9 @@ const queryClient = new QueryClient();
 const P = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>{children}</ProtectedRoute>
 );
+const A = ({ children, superOnly }: { children: React.ReactNode; superOnly?: boolean }) => (
+  <AdminRoute superOnly={superOnly}>{children}</AdminRoute>
+);
 
 const AnimatedRoutes = () => {
   const location = useLocation();
