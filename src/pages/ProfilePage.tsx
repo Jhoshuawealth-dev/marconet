@@ -1,4 +1,4 @@
-import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNdc } from "@/contexts/NdcContext";
 import PageTransition from "@/components/app/PageTransition";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { useEffect, useState } from "react";
 
 const settingsItems = [
@@ -19,6 +20,7 @@ const settingsItems = [
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const { balance } = useNdc();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
@@ -87,6 +89,21 @@ const ProfilePage = () => {
             </Card>
           </div>
 
+          {/* Admin Panel Link */}
+          {isAdmin && (
+            <Link to="/admin">
+              <Card className="border border-primary/30 bg-primary/5 shadow-premium rounded-2xl mb-4">
+                <CardContent className="p-3.5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="flex-1 text-[13px] font-semibold text-primary">Admin Panel</span>
+                  <ChevronRight className="h-4 w-4 text-primary" />
+                </CardContent>
+              </Card>
+            </Link>
+          )}
+
           {/* Account Settings */}
           <div>
             <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Account Settings</h2>
@@ -97,21 +114,7 @@ const ProfilePage = () => {
                     <CardContent className="p-3.5 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
                         <item.icon className="h-4 w-4 text-muted-foreground" />
-          </div>
-
-          {/* Appearance */}
-          <div>
-            <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Appearance</h2>
-            <Card className="border border-border/60 shadow-premium rounded-2xl">
-              <CardContent className="p-3.5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
-                  {isDark ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
-                </div>
-                <span className="flex-1 text-[13px] font-semibold text-foreground">Dark Mode</span>
-                <Switch checked={isDark} onCheckedChange={setIsDark} />
-              </CardContent>
-            </Card>
-          </div>
+                      </div>
                       <span className="flex-1 text-[13px] font-semibold text-foreground">{item.label}</span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </CardContent>
