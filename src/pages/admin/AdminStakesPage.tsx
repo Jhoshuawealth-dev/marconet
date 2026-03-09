@@ -34,17 +34,30 @@ const AdminStakesPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch all stakes with profile data
+      // Fetch all stakes with profile data using manual join
       const { data: stakesData } = await supabase
         .from("staked_projects")
-        .select(`
-          *,
-          profiles(full_name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (stakesData) {
-        setStakes(stakesData);
+        // Get user IDs and fetch profiles separately
+        const userIds = [...new Set(stakesData.map(s => s.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+
+        // Create profile map
+        const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+
+        // Combine data
+        const stakesWithProfiles = stakesData.map(stake => ({
+          ...stake,
+          profiles: profileMap.get(stake.user_id) || { full_name: null }
+        }));
+
+        setStakes(stakesWithProfiles);
 
         // Calculate summaries by project
         const projectMap = new Map<string, { total: number; count: number }>();
