@@ -1,59 +1,28 @@
 
+### Activating Payment Methods (Card, Bank Transfer, USSD)
 
-# NDC Economy & Community Rules Update
+Currently, the "Fund Wallet" page is a visual simulation. To make these payment methods actually charge users and fund their wallets, we need to integrate a **Payment Gateway**. 
 
-## What Changes
+Given the payment options you listed (Debit Card, Bank Transfer, USSD) and the presence of the Naira (₦) currency in your wallet, the most suitable payment gateways for your platform would be **Paystack** or **Flutterwave**. 
 
-### 1. NDC Exchange Rates
-Add currency conversion constants used in Transfer and Wallet pages:
-- 1 NDC = £5 (GBP)
-- 1 NDC = $7 (USD)
-- 1 NDC = ₦11,500 (NGN)
+Here is the plan on how we can activate them:
 
-### 2. Updated Community Rewards (currently: Like=5, Comment=10, Share=20)
-- Like = **1 NDC**
-- Comment = **3 NDC**
-- Share = **5 NDC**
-- Picture upload = **7 NDC**
-- Video upload = **10 NDC**
+#### Option 1: Integrate Paystack or Flutterwave (Recommended for USSD/Bank Transfer)
+These providers natively support Nigerian Debit Cards, Bank Transfers, and USSD.
+1. **Setup Account:** You create a free account on Paystack or Flutterwave and get your API keys.
+2. **Secure the Keys:** We will store your API Secret Keys securely in Lovable Cloud (Supabase) secrets.
+3. **Backend Integration:** I will create a secure **Edge Function** in your backend. When a user clicks "Fund Wallet", the app calls this function to generate a secure payment link or popup.
+4. **Webhook Setup:** I will set up a webhook so that when the payment is successful (whether by card, transfer, or USSD), the gateway automatically tells your backend to add the exact NDC amount to the user's `ndc_balance` in the database.
+5. **Frontend Update:** Update the UI to launch the payment modal instead of faking the success message.
 
-### 3. Content Rules & Posting Limits (currently: 2 posts/day for all)
-- Video posts: **1 per week**
-- Picture posts: **2 per week**
-- Harvest actions: **4 per month**
-- All farm content must be tagged as "Real Farm" (not AI-generated) — add a checkbox/disclaimer on the post creation form
-
-### 4. Transfer Fee
-- **5% fee** on all transfers, charged in the destination currency
-- Show fee breakdown before confirming transfer (amount, fee, total deducted)
+#### Option 2: Integrate Stripe (Built-in Lovable Integration)
+If you prefer an international provider, Lovable has a built-in **Stripe** integration. 
+* *Pros:* Very easy to activate instantly via a tool I can run right now.
+* *Cons:* Stripe is primarily focused on Credit/Debit Cards globally. USSD and local Nigerian Bank Transfers aren't supported in the same seamless way as Paystack.
 
 ---
 
-## Files to Modify
+### How to proceed?
+If you want to use **Stripe**, let me know and I can trigger the built-in Stripe tool right away to collect your API keys and set it up!
 
-### `src/contexts/NdcContext.tsx`
-- Update reward amounts: like→1, comment→3, share→5
-- Add `weeklyVideoPosts`, `weeklyPicturePosts`, `monthlyHarvests` counters
-- Add `createMediaPost(type: "picture"|"video", title, body)` with weekly limits and appropriate NDC rewards
-- Track harvest limit (4/month)
-
-### `src/pages/CommunityPage.tsx`
-- Update reward display text to match new values
-- Expand post creation dialog: add post type selector (Text / Picture / Video)
-- Add "Real Farm Content" checkbox — required before submitting picture/video posts
-- Show weekly limits in the daily limits banner (videos: X/1, pictures: X/2)
-- Update toast messages with new NDC amounts
-
-### `src/pages/TransferPage.tsx`
-- Add currency selector (GBP £, USD $, NGN ₦) with exchange rates
-- Calculate and display 5% fee in selected currency
-- Show breakdown: NDC amount → converted value → fee → net amount received
-- Deduct full NDC amount (including fee equivalent) from balance
-
-### `src/pages/WalletPage.tsx`
-- Display NDC balance with equivalent values in all 3 currencies
-- Show exchange rate reference
-
-### `src/pages/DashboardPage.tsx`
-- Update harvest action to respect 4/month limit
-
+If you prefer **Paystack** or **Flutterwave**, simply reply with which one you'd prefer to use. I will then guide you on how to provide the API keys, and I'll write the complete backend and frontend code to make the payments live.
