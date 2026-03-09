@@ -35,7 +35,28 @@ const AdminDashboardPage = () => {
       setRecentTxs(recentTxsRes.data ?? []);
       setLoading(false);
     };
+
     fetchStats();
+
+    // Set up real-time subscriptions
+    const channel = supabase.channel('admin-dashboard-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        fetchStats();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ndc_transactions' }, () => {
+        fetchStats();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, () => {
+        fetchStats();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'staked_projects' }, () => {
+        fetchStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const cards = [
