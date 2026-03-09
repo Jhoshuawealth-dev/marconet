@@ -36,17 +36,30 @@ const AdminEducationPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch all enrollments with profile data
+      // Fetch all enrollments
       const { data: enrollmentData } = await supabase
         .from("enrolled_courses")
-        .select(`
-          *,
-          profiles(full_name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (enrollmentData) {
-        setEnrollments(enrollmentData);
+        // Get user IDs and fetch profiles separately
+        const userIds = [...new Set(enrollmentData.map(e => e.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+
+        // Create profile map
+        const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+
+        // Combine data
+        const enrollmentsWithProfiles = enrollmentData.map(enrollment => ({
+          ...enrollment,
+          profiles: profileMap.get(enrollment.user_id) || { full_name: null }
+        }));
+
+        setEnrollments(enrollmentsWithProfiles);
 
         // Calculate course summaries
         const courseMap = new Map<string, { count: number; recent: number }>();
