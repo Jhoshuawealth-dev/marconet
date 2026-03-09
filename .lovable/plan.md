@@ -1,59 +1,60 @@
 
 
-# NDC Economy & Community Rules Update
+## What's Missing from the Admin Section
 
-## What Changes
+Comparing the admin panel against the full app feature set, here are the gaps:
 
-### 1. NDC Exchange Rates
-Add currency conversion constants used in Transfer and Wallet pages:
-- 1 NDC = £5 (GBP)
-- 1 NDC = $7 (USD)
-- 1 NDC = ₦11,500 (NGN)
+### Currently in Admin
+- Dashboard (KPIs + chart)
+- Users (list + search)
+- Moderation (approve/reject posts)
+- Transactions (list + search)
+- Admin Requests (super_admin only)
 
-### 2. Updated Community Rewards (currently: Like=5, Comment=10, Share=20)
-- Like = **1 NDC**
-- Comment = **3 NDC**
-- Share = **5 NDC**
-- Picture upload = **7 NDC**
-- Video upload = **10 NDC**
+### What Should Be Added
 
-### 3. Content Rules & Posting Limits (currently: 2 posts/day for all)
-- Video posts: **1 per week**
-- Picture posts: **2 per week**
-- Harvest actions: **4 per month**
-- All farm content must be tagged as "Real Farm" (not AI-generated) — add a checkbox/disclaimer on the post creation form
+**1. Staking / Investment Management**
+- View all staked projects across users (data exists in `staked_projects` table)
+- See total staked NDC, top projects, active stakes over time
 
-### 4. Transfer Fee
-- **5% fee** on all transfers, charged in the destination currency
-- Show fee breakdown before confirming transfer (amount, fee, total deducted)
+**2. Education / Courses Overview**
+- View enrolled courses stats from `enrolled_courses` table
+- See which courses are most popular, enrollment trends
 
----
+**3. Settings Page**
+- Platform-level settings: toggle features, manage announcement banners
+- Admin activity log / audit trail
 
-## Files to Modify
+**4. User Detail View**
+- Click a user in the Users page to see their full profile, transactions, stakes, and posts in one place
+- Ability to suspend/ban (add `status` column to profiles)
 
-### `src/contexts/NdcContext.tsx`
-- Update reward amounts: like→1, comment→3, share→5
-- Add `weeklyVideoPosts`, `weeklyPicturePosts`, `monthlyHarvests` counters
-- Add `createMediaPost(type: "picture"|"video", title, body)` with weekly limits and appropriate NDC rewards
-- Track harvest limit (4/month)
+**5. Notification / Announcement Broadcast**
+- Send platform-wide announcements or targeted notifications to users
 
-### `src/pages/CommunityPage.tsx`
-- Update reward display text to match new values
-- Expand post creation dialog: add post type selector (Text / Picture / Video)
-- Add "Real Farm Content" checkbox — required before submitting picture/video posts
-- Show weekly limits in the daily limits banner (videos: X/1, pictures: X/2)
-- Update toast messages with new NDC amounts
+**6. Analytics Page (deeper)**
+- User growth chart over time (daily/weekly signups)
+- NDC circulation metrics (mined vs spent vs staked)
+- Community engagement stats (posts per day, comments)
 
-### `src/pages/TransferPage.tsx`
-- Add currency selector (GBP £, USD $, NGN ₦) with exchange rates
-- Calculate and display 5% fee in selected currency
-- Show breakdown: NDC amount → converted value → fee → net amount received
-- Deduct full NDC amount (including fee equivalent) from balance
+### Implementation Plan
 
-### `src/pages/WalletPage.tsx`
-- Display NDC balance with equivalent values in all 3 currencies
-- Show exchange rate reference
+| Item | Pages/Components | DB Changes |
+|---|---|---|
+| Staking management | `/admin/stakes` — new page | None (RLS already allows admin reads) |
+| Education overview | `/admin/education` — new page | None (need admin RLS on `enrolled_courses`) |
+| User detail view | `/admin/users/:id` — new page | None |
+| Analytics page | `/admin/analytics` — new page with Recharts | None |
+| Settings page | `/admin/settings` — new page | New `platform_settings` table |
+| Announcements | `/admin/announcements` — new page | New `announcements` table |
 
-### `src/pages/DashboardPage.tsx`
-- Update harvest action to respect 4/month limit
+**DB migration needed for:**
+- Add admin SELECT RLS policy on `enrolled_courses`
+- Create `platform_settings` table (key-value store)
+- Create `announcements` table (title, body, target, created_by, created_at)
+
+**Nav updates:**
+- Add new items to `AdminLayout.tsx` sidebar: Stakes, Education, Analytics, Settings, Announcements
+
+All pages follow the existing admin design pattern (AdminLayout wrapper, premium card styling, search/filter bars, Recharts for charts).
 
