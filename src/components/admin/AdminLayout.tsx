@@ -11,6 +11,9 @@ import {
   ArrowLeft,
   Settings,
   Bell,
+  TrendingUp,
+  BookOpen,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +22,11 @@ const navItems = [
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Moderation", url: "/admin/moderation", icon: MessageSquare },
   { title: "Transactions", url: "/admin/transactions", icon: DollarSign },
+  { title: "Stakes", url: "/admin/stakes", icon: TrendingUp },
+  { title: "Education", url: "/admin/education", icon: BookOpen },
+  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
+  { title: "Announcements", url: "/admin/announcements", icon: Bell },
 ];
 
 const superNavItems = [

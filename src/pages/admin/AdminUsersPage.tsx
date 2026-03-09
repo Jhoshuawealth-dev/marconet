@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,19 +78,21 @@ const AdminUsersPage = () => {
           <div className="space-y-2.5">
             {filtered.map((p) => (
               <Card key={p.id} className="border border-border/60 shadow-premium rounded-2xl hover:shadow-elevated transition-shadow">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-[11px] font-bold shadow-sm">
-                    {(p.full_name || "U").slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-bold text-foreground truncate">{p.full_name || "Unnamed"}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {p.phone || "No phone"} · Joined {new Date(p.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge className="gradient-accent text-accent-foreground border-0 text-[10px] font-bold px-2.5 py-1 rounded-lg">
-                    {p.ndc_balance.toLocaleString()} NDC
-                  </Badge>
+                <CardContent className="p-4">
+                  <Link to={`/admin/users/${p.id}`} className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-[11px] font-bold shadow-sm">
+                      {(p.full_name || "U").slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-bold text-foreground truncate">{p.full_name || "Unnamed"}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {p.phone || "No phone"} · Joined {new Date(p.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge className="gradient-accent text-accent-foreground border-0 text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                      {p.ndc_balance.toLocaleString()} NDC
+                    </Badge>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
