@@ -44,9 +44,15 @@ import TermsPage from "./pages/TermsPage";
 import PlatformCharterPage from "./pages/PlatformCharterPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminUserDetailPage from "./pages/admin/AdminUserDetailPage";
 import AdminModerationPage from "./pages/admin/AdminModerationPage";
 import AdminTransactionsPage from "./pages/admin/AdminTransactionsPage";
 import AdminRequestsPage from "./pages/admin/AdminRequestsPage";
+import AdminStakesPage from "./pages/admin/AdminStakesPage";
+import AdminEducationPage from "./pages/admin/AdminEducationPage";
+import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
+import AdminAnnouncementsPage from "./pages/admin/AdminAnnouncementsPage";
 import AdminRequestAccessPage from "./pages/AdminRequestAccessPage";
 import AdminRoute from "@/components/admin/AdminRoute";
 
