@@ -77,8 +77,9 @@ const AdminUsersPage = () => {
           <div className="space-y-2.5">
             {filtered.map((p) => (
               <Card key={p.id} className="border border-border/60 shadow-premium rounded-2xl hover:shadow-elevated transition-shadow">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-[11px] font-bold shadow-sm">
+                <CardContent className="p-4">
+                  <Link to={`/admin/users/${p.id}`} className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-[11px] font-bold shadow-sm">
                     {(p.full_name || "U").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
