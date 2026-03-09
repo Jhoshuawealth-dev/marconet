@@ -61,7 +61,7 @@ const AdminStakesPage = () => {
 
         // Calculate summaries by project
         const projectMap = new Map<string, { total: number; count: number }>();
-        stakesData.forEach(stake => {
+        stakesWithProfiles.forEach(stake => {
           const current = projectMap.get(stake.project_id) || { total: 0, count: 0 };
           projectMap.set(stake.project_id, {
             total: current.total + stake.amount,

@@ -65,7 +65,7 @@ const AdminEducationPage = () => {
         const courseMap = new Map<string, { count: number; recent: number }>();
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-        enrollmentData.forEach(enrollment => {
+        enrollmentsWithProfiles.forEach(enrollment => {
           const current = courseMap.get(enrollment.course_id) || { count: 0, recent: 0 };
           const isRecent = new Date(enrollment.created_at) > oneWeekAgo;
           
