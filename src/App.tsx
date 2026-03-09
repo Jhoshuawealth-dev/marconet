@@ -112,8 +112,14 @@ const AnimatedRoutes = () => {
         {/* Admin routes */}
         <Route path="/admin" element={<A><AdminDashboardPage /></A>} />
         <Route path="/admin/users" element={<A><AdminUsersPage /></A>} />
+        <Route path="/admin/users/:id" element={<A><AdminUserDetailPage /></A>} />
         <Route path="/admin/moderation" element={<A><AdminModerationPage /></A>} />
         <Route path="/admin/transactions" element={<A><AdminTransactionsPage /></A>} />
+        <Route path="/admin/stakes" element={<A><AdminStakesPage /></A>} />
+        <Route path="/admin/education" element={<A><AdminEducationPage /></A>} />
+        <Route path="/admin/analytics" element={<A><AdminAnalyticsPage /></A>} />
+        <Route path="/admin/settings" element={<A><AdminSettingsPage /></A>} />
+        <Route path="/admin/announcements" element={<A><AdminAnnouncementsPage /></A>} />
         <Route path="/admin/requests" element={<A superOnly><AdminRequestsPage /></A>} />
 
         <Route path="*" element={<NotFound />} />
