@@ -53,6 +53,7 @@ import AdminEducationPage from "./pages/admin/AdminEducationPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminAnnouncementsPage from "./pages/admin/AdminAnnouncementsPage";
+import AdminVerificationPage from "./pages/admin/AdminVerificationPage";
 import AdminRequestAccessPage from "./pages/AdminRequestAccessPage";
 import AdminRoute from "@/components/admin/AdminRoute";
 
@@ -120,6 +121,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/analytics" element={<A><AdminAnalyticsPage /></A>} />
         <Route path="/admin/settings" element={<A><AdminSettingsPage /></A>} />
         <Route path="/admin/announcements" element={<A><AdminAnnouncementsPage /></A>} />
+        <Route path="/admin/verification" element={<A><AdminVerificationPage /></A>} />
         <Route path="/admin/requests" element={<A superOnly><AdminRequestsPage /></A>} />
 
         <Route path="*" element={<NotFound />} />

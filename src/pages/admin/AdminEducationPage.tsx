@@ -87,6 +87,13 @@ const AdminEducationPage = () => {
     };
 
     fetchData();
+
+    const channel = supabase
+      .channel("admin-education")
+      .on("postgres_changes", { event: "*", schema: "public", table: "enrolled_courses" }, () => fetchData())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const totalEnrollments = enrollments.length;
