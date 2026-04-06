@@ -1,9 +1,12 @@
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Camera, ShieldCheck, Lock, CheckCircle, Clock } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Camera, ShieldCheck, Lock, CheckCircle, Clock, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const idTypes = [
   { id: "gov", title: "Government ID", desc: "National ID card or equivalent", icon: BadgeCheck },
@@ -15,16 +18,108 @@ const steps = ["ID Selection", "Document Scan", "Liveness Check"];
 
 const VerificationPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [selectedId, setSelectedId] = useState("gov");
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [documentPreview, setDocumentPreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [existingStatus, setExistingStatus] = useState<string | null>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const selfieInputRef = useRef<HTMLInputElement>(null);
   const progress = ((step + 1) / steps.length) * 100;
 
-  const next = () => {
-    if (step < steps.length - 1) setStep(step + 1);
-    else setStep(3); // done
+  useEffect(() => {
+    if (!user) return;
+    const checkExisting = async () => {
+      const { data } = await supabase
+        .from("verification_requests" as any)
+        .select("status")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (data && (data as any[]).length > 0) {
+        setExistingStatus((data as any[])[0].status);
+      }
+    };
+    checkExisting();
+  }, [user]);
+
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDocumentFile(file);
+      setDocumentPreview(URL.createObjectURL(file));
+    }
   };
 
-  if (step === 3) {
+  const handleSelfieSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelfieFile(file);
+      setSelfiePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user || !documentFile || !selfieFile) return;
+    setSubmitting(true);
+
+    try {
+      const docPath = `${user.id}/document-${Date.now()}`;
+      const selfiePath = `${user.id}/selfie-${Date.now()}`;
+
+      const [docUpload, selfieUpload] = await Promise.all([
+        supabase.storage.from("kyc-documents").upload(docPath, documentFile),
+        supabase.storage.from("kyc-documents").upload(selfiePath, selfieFile),
+      ]);
+
+      if (docUpload.error) throw docUpload.error;
+      if (selfieUpload.error) throw selfieUpload.error;
+
+      const docUrl = supabase.storage.from("kyc-documents").getPublicUrl(docPath).data.publicUrl;
+      const selfieUrl = supabase.storage.from("kyc-documents").getPublicUrl(selfiePath).data.publicUrl;
+
+      const { error } = await supabase.from("verification_requests" as any).insert({
+        user_id: user.id,
+        id_type: selectedId,
+        document_url: docUrl,
+        selfie_url: selfieUrl,
+      } as any);
+
+      if (error) throw error;
+
+      setExistingStatus("pending");
+      setStep(3);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const next = () => {
+    if (step === 1 && !documentFile) {
+      toast({ title: "Please upload your document photo" });
+      return;
+    }
+    if (step === 2) {
+      if (!selfieFile) {
+        toast({ title: "Please upload your selfie" });
+        return;
+      }
+      handleSubmit();
+      return;
+    }
+    if (step < steps.length - 1) setStep(step + 1);
+  };
+
+  // Show status if already submitted
+  if (existingStatus || step === 3) {
+    const status = existingStatus || "pending";
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
@@ -37,14 +132,26 @@ const VerificationPage = () => {
 
           <div className="flex-1 flex flex-col items-center justify-center px-6 text-center space-y-6">
             <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
-              <Clock className="h-16 w-16 text-primary" />
+              {status === "approved" ? (
+                <CheckCircle className="h-16 w-16 text-primary" />
+              ) : status === "rejected" ? (
+                <ShieldCheck className="h-16 w-16 text-destructive" />
+              ) : (
+                <Clock className="h-16 w-16 text-primary" />
+              )}
             </div>
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-accent/20 text-accent-foreground uppercase">
-              ⏳ Pending Review
+              {status === "approved" ? "✅ Verified" : status === "rejected" ? "❌ Rejected" : "⏳ Pending Review"}
             </span>
-            <h2 className="text-2xl font-extrabold text-foreground">Verification in Progress</h2>
+            <h2 className="text-2xl font-extrabold text-foreground">
+              {status === "approved" ? "Identity Verified" : status === "rejected" ? "Verification Rejected" : "Verification in Progress"}
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Your Digital Farm is being prepared. Our team is currently reviewing your documents to ensure a secure environment for all farmers. You will be notified within <span className="text-primary font-bold">24 hours</span>.
+              {status === "approved"
+                ? "Your identity has been verified. You now have full access to all platform features."
+                : status === "rejected"
+                ? "Your verification was not approved. Please resubmit with clearer documents."
+                : "Your Digital Farm is being prepared. Our team is reviewing your documents. You will be notified within 24 hours."}
             </p>
 
             <div className="grid grid-cols-3 gap-3 w-full">
@@ -63,8 +170,13 @@ const VerificationPage = () => {
             </div>
           </div>
 
-          <div className="px-4 pb-6">
-            <Button onClick={() => navigate("/dashboard")} className="w-full font-bold text-base h-12 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
+          <div className="px-4 pb-6 space-y-2">
+            {status === "rejected" && (
+              <Button onClick={() => { setExistingStatus(null); setStep(0); setDocumentFile(null); setSelfieFile(null); }} className="w-full font-bold text-base h-12 rounded-xl gap-2">
+                Resubmit Verification
+              </Button>
+            )}
+            <Button onClick={() => navigate("/dashboard")} variant={status === "rejected" ? "outline" : "default"} className="w-full font-bold text-base h-12 rounded-xl gap-2">
               Go to Dashboard <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -76,7 +188,6 @@ const VerificationPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
-        {/* Header */}
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center gap-3 mb-3">
             <button onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
@@ -91,14 +202,13 @@ const VerificationPage = () => {
           <Progress value={progress} className="h-1.5" />
         </div>
 
-        {/* Content */}
         <div className="flex-1 px-4 py-6">
           {step === 0 && (
             <div className="space-y-5">
               <div>
                 <h2 className="text-2xl font-extrabold text-foreground">Select ID Type</h2>
                 <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                  To ensure a safe and trusted farming community for everyone, please select your preferred form of identification.
+                  Select your preferred form of identification to verify your identity.
                 </p>
               </div>
               <div className="space-y-3">
@@ -129,7 +239,7 @@ const VerificationPage = () => {
                 <CardContent className="p-3 flex items-start gap-2">
                   <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    Your data is encrypted and stored securely. We only use this information to verify your identity as part of our community safety guidelines.
+                    Your data is encrypted and stored securely. We only use this information to verify your identity.
                   </p>
                 </CardContent>
               </Card>
@@ -139,15 +249,26 @@ const VerificationPage = () => {
           {step === 1 && (
             <div className="space-y-5">
               <div className="text-center space-y-2">
-                <h2 className="text-2xl font-extrabold text-foreground">Position your ID within the frame</h2>
-                <p className="text-sm text-muted-foreground">Center your document to scan automatically</p>
+                <h2 className="text-2xl font-extrabold text-foreground">Upload your document</h2>
+                <p className="text-sm text-muted-foreground">Take a clear photo of your {idTypes.find(t => t.id === selectedId)?.title}</p>
               </div>
-              <div className="aspect-[4/3] bg-foreground/10 rounded-2xl border-2 border-primary flex items-center justify-center">
-                <div className="text-center text-muted-foreground space-y-2">
-                  <Camera className="h-12 w-12 mx-auto text-primary/40" />
-                  <p className="text-xs">Camera preview area</p>
+              <input ref={docInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleDocumentSelect} />
+              {documentPreview ? (
+                <div className="space-y-3">
+                  <img src={documentPreview} alt="Document" className="w-full rounded-2xl border-2 border-primary" />
+                  <Button variant="outline" onClick={() => docInputRef.current?.click()} className="w-full gap-2">
+                    <Camera className="h-4 w-4" /> Retake Photo
+                  </Button>
                 </div>
-              </div>
+              ) : (
+                <button
+                  onClick={() => docInputRef.current?.click()}
+                  className="w-full aspect-[4/3] bg-muted/30 rounded-2xl border-2 border-dashed border-primary/40 flex flex-col items-center justify-center gap-3 hover:bg-muted/50 transition-colors"
+                >
+                  <Upload className="h-12 w-12 text-primary/40" />
+                  <p className="text-xs text-muted-foreground font-semibold">Tap to upload or take photo</p>
+                </button>
+              )}
               <Card className="bg-muted">
                 <CardContent className="p-3 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -165,27 +286,35 @@ const VerificationPage = () => {
           {step === 2 && (
             <div className="space-y-5 text-center">
               <h2 className="text-2xl font-extrabold text-foreground">Selfie Verification</h2>
-              <p className="text-sm text-muted-foreground">Position your face within the circle</p>
-              <div className="w-48 h-48 rounded-full border-4 border-primary mx-auto bg-muted flex items-center justify-center">
-                <Camera className="h-12 w-12 text-primary/30" />
-              </div>
-              <Card className="bg-muted/50 mx-auto max-w-xs">
-                <CardContent className="p-3 text-center">
-                  <p className="text-sm font-bold text-primary">Smile and look at the camera</p>
-                </CardContent>
-              </Card>
-              <div className="flex justify-center gap-3">
-                <span className="text-xs flex items-center gap-1 text-primary font-semibold"><CheckCircle className="h-3.5 w-3.5" /> Face detected</span>
-                <span className="text-xs flex items-center gap-1 text-primary font-semibold"><CheckCircle className="h-3.5 w-3.5" /> Good lighting</span>
-              </div>
+              <p className="text-sm text-muted-foreground">Take a clear selfie photo</p>
+              <input ref={selfieInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleSelfieSelect} />
+              {selfiePreview ? (
+                <div className="space-y-3">
+                  <img src={selfiePreview} alt="Selfie" className="w-48 h-48 rounded-full border-4 border-primary mx-auto object-cover" />
+                  <Button variant="outline" onClick={() => selfieInputRef.current?.click()} className="gap-2">
+                    <Camera className="h-4 w-4" /> Retake Selfie
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => selfieInputRef.current?.click()}
+                  className="w-48 h-48 rounded-full border-4 border-dashed border-primary/40 mx-auto bg-muted/30 flex items-center justify-center hover:bg-muted/50 transition-colors"
+                >
+                  <Camera className="h-12 w-12 text-primary/30" />
+                </button>
+              )}
+              {selfiePreview && (
+                <div className="flex justify-center gap-3">
+                  <span className="text-xs flex items-center gap-1 text-primary font-semibold"><CheckCircle className="h-3.5 w-3.5" /> Photo uploaded</span>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-4 pb-6">
-          <Button onClick={next} className="w-full font-bold text-base h-12 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
-            {step === 2 ? "Submit Verification" : "Continue"} <ArrowRight className="h-4 w-4" />
+          <Button onClick={next} disabled={submitting} className="w-full font-bold text-base h-12 rounded-xl gap-2">
+            {submitting ? "Submitting..." : step === 2 ? "Submit Verification" : "Continue"} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
