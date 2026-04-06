@@ -1,4 +1,4 @@
-import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Shield, Vote, Award, ChevronRight, User, Lock, Sprout, Leaf, LogOut, Moon, Sun, ShieldCheck, Camera } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNdc } from "@/contexts/NdcContext";
 import PageTransition from "@/components/app/PageTransition";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const settingsItems = [
   { icon: User, label: "Personal Information", to: "/profile/personal" },
@@ -23,6 +25,10 @@ const ProfilePage = () => {
   const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isDark) {
@@ -33,6 +39,34 @@ const ProfilePage = () => {
       localStorage.setItem("theme", "light");
     }
   }, [isDark]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchAvatar = async () => {
+      const { data } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single();
+      if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+    };
+    fetchAvatar();
+  }, [user]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const path = `${user.id}/avatar-${Date.now()}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", user.id);
+      setAvatarUrl(urlData.publicUrl);
+      toast({ title: "Profile photo updated ✅" });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Farmer";
   const initials = displayName.slice(0, 2).toUpperCase();
@@ -51,9 +85,19 @@ const ProfilePage = () => {
         <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
           {/* Profile Header */}
           <div className="text-center space-y-3">
-            <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mx-auto text-primary-foreground font-display font-extrabold text-xl shadow-elevated">
-              {initials}
-            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            <button onClick={() => fileInputRef.current?.click()} className="relative group" disabled={uploading}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-3xl object-cover shadow-elevated" />
+              ) : (
+                <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center text-primary-foreground font-display font-extrabold text-xl shadow-elevated">
+                  {initials}
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-3xl bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="h-5 w-5 text-background" />
+              </div>
+            </button>
             <div>
               <h1 className="text-xl font-display font-extrabold text-foreground">{displayName}</h1>
               <p className="text-[11px] text-muted-foreground mt-1">
