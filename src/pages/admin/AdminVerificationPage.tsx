@@ -31,18 +31,19 @@ const AdminVerificationPage = () => {
 
   const fetchRequests = async () => {
     const { data } = await supabase
-      .from("verification_requests")
+      .from("verification_requests" as any)
       .select("*")
       .order("created_at", { ascending: false });
 
     if (data) {
-      const userIds = [...new Set(data.map((r) => r.user_id))];
+      const rows = data as any[];
+      const userIds = [...new Set(rows.map((r: any) => r.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, full_name")
         .in("user_id", userIds);
       const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
-      setRequests(data.map((r) => ({ ...r, profile: profileMap.get(r.user_id) || { full_name: null } })));
+      setRequests(rows.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) || { full_name: null } })));
     }
     setLoading(false);
   };
@@ -59,8 +60,8 @@ const AdminVerificationPage = () => {
   const updateStatus = async (id: string, status: string) => {
     if (!user) return;
     const { error } = await supabase
-      .from("verification_requests")
-      .update({ status, reviewed_by: user.id, reviewed_at: new Date().toISOString() })
+      .from("verification_requests" as any)
+      .update({ status, reviewed_by: user.id, reviewed_at: new Date().toISOString() } as any)
       .eq("id", id);
 
     if (error) {

@@ -21,16 +21,16 @@ export const useNotifications = () => {
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
-      .from("notifications")
+      .from("notifications" as any)
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    if (data) setNotifications(data);
+    if (data) setNotifications(data as any);
     setLoading(false);
   }, [user]);
 
   const markAsRead = async (id: string) => {
-    await supabase.from("notifications").update({ read: true }).eq("id", id);
+    await supabase.from("notifications" as any).update({ read: true } as any).eq("id", id);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
@@ -39,8 +39,8 @@ export const useNotifications = () => {
   const markAllAsRead = async () => {
     if (!user) return;
     await supabase
-      .from("notifications")
-      .update({ read: true })
+      .from("notifications" as any)
+      .update({ read: true } as any)
       .eq("user_id", user.id)
       .eq("read", false);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
