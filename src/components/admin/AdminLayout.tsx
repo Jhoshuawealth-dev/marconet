@@ -14,6 +14,7 @@ import {
   TrendingUp,
   BookOpen,
   BarChart3,
+  FileCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ const navItems = [
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Settings", url: "/admin/settings", icon: Settings },
   { title: "Announcements", url: "/admin/announcements", icon: Bell },
+  { title: "Verification", url: "/admin/verification", icon: FileCheck },
 ];
 
 const superNavItems = [

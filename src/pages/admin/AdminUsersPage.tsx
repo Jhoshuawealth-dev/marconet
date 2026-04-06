@@ -29,6 +29,13 @@ const AdminUsersPage = () => {
       setLoading(false);
     };
     fetch();
+
+    const channel = supabase
+      .channel("admin-profiles")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => fetch())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const filtered = profiles.filter(

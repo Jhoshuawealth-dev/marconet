@@ -82,6 +82,13 @@ const AdminStakesPage = () => {
     };
 
     fetchData();
+
+    const channel = supabase
+      .channel("admin-stakes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "staked_projects" }, () => fetchData())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const filteredStakes = stakes.filter(

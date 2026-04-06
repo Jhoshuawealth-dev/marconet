@@ -121,15 +121,25 @@ const AdminAnnouncementsPage = () => {
 
   const handlePublishToggle = async (announcement: Announcement) => {
     try {
+      const newPublished = !announcement.published;
       const { error } = await supabase
         .from("announcements")
-        .update({ published: !announcement.published })
+        .update({ published: newPublished })
         .eq("id", announcement.id);
 
       if (error) throw error;
+
+      // Send notifications to all users when publishing
+      if (newPublished) {
+        await supabase.rpc("notify_all_users" as any, {
+          _title: announcement.title,
+          _body: announcement.body,
+          _type: "announcement",
+        });
+      }
       
       toast({ 
-        title: `Announcement ${!announcement.published ? 'published' : 'unpublished'}` 
+        title: `Announcement ${newPublished ? 'published' : 'unpublished'}${newPublished ? ' — notifications sent!' : ''}` 
       });
       fetchAnnouncements();
     } catch (error) {
