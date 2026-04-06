@@ -1,28 +1,93 @@
+## Implementation Plan: 5 Feature Upgrades
 
-### Activating Payment Methods (Card, Bank Transfer, USSD)
+### 1. Real-time Updates for Admin Stakes, Education, Users Pages
 
-Currently, the "Fund Wallet" page is a visual simulation. To make these payment methods actually charge users and fund their wallets, we need to integrate a **Payment Gateway**. 
+Add Supabase realtime channel subscriptions (same pattern as AdminDashboardPage) to these three pages so data refreshes automatically when changes occur.
 
-Given the payment options you listed (Debit Card, Bank Transfer, USSD) and the presence of the Naira (₦) currency in your wallet, the most suitable payment gateways for your platform would be **Paystack** or **Flutterwave**. 
+**Files to edit:**
 
-Here is the plan on how we can activate them:
+- `src/pages/admin/AdminUsersPage.tsx` — subscribe to `profiles` table changes
+- `src/pages/admin/AdminStakesPage.tsx` — subscribe to `staked_projects` table changes
+- `src/pages/admin/AdminEducationPage.tsx` — subscribe to `enrolled_courses` table changes
 
-#### Option 1: Integrate Paystack or Flutterwave (Recommended for USSD/Bank Transfer)
-These providers natively support Nigerian Debit Cards, Bank Transfers, and USSD.
-1. **Setup Account:** You create a free account on Paystack or Flutterwave and get your API keys.
-2. **Secure the Keys:** We will store your API Secret Keys securely in Lovable Cloud (Supabase) secrets.
-3. **Backend Integration:** I will create a secure **Edge Function** in your backend. When a user clicks "Fund Wallet", the app calls this function to generate a secure payment link or popup.
-4. **Webhook Setup:** I will set up a webhook so that when the payment is successful (whether by card, transfer, or USSD), the gateway automatically tells your backend to add the exact NDC amount to the user's `ndc_balance` in the database.
-5. **Frontend Update:** Update the UI to launch the payment modal instead of faking the success message.
-
-#### Option 2: Integrate Stripe (Built-in Lovable Integration)
-If you prefer an international provider, Lovable has a built-in **Stripe** integration. 
-* *Pros:* Very easy to activate instantly via a tool I can run right now.
-* *Cons:* Stripe is primarily focused on Credit/Debit Cards globally. USSD and local Nigerian Bank Transfers aren't supported in the same seamless way as Paystack.
+Each page gets a channel subscription in useEffect with cleanup on unmount, re-fetching data on any insert/update/delete.
 
 ---
 
-### How to proceed?
-If you want to use **Stripe**, let me know and I can trigger the built-in Stripe tool right away to collect your API keys and set it up!
+### 2. Real Notification System with Database Storage
 
-If you prefer **Paystack** or **Flutterwave**, simply reply with which one you'd prefer to use. I will then guide you on how to provide the API keys, and I'll write the complete backend and frontend code to make the payments live.
+Create a `notifications` table and replace the current transaction-only notifications with a proper system that tracks announcements, post approvals, stake events, and more.
+
+**Database migration:**
+
+- Create `notifications` table: `id`, `user_id`, `title`, `body`, `type` (announcement, post_approval, stake_maturity, system), `read` (boolean, default false), `created_at`
+- RLS: users can read/update own notifications; admins can insert for any user
+- Enable realtime on the table
+
+**Files to create/edit:**
+
+- `src/hooks/useNotifications.ts` — hook to fetch, mark-read, and subscribe to realtime notifications
+- `src/pages/NotificationsPage.tsx` — rewrite to pull from database instead of NdcContext transactions
+- `src/pages/admin/AdminAnnouncementsPage.tsx` — when publishing an announcement, insert a notification row per user (via a database function to batch-insert)
+- Create DB function `notify_all_users` that inserts a notification for every user when an announcement is published
+
+---
+
+### 3. Profile Photo Upload
+
+Create a storage bucket and let users upload an avatar image from their profile.
+
+**Database migration:**
+
+- Create `avatars` storage bucket (public)
+- RLS policies: authenticated users can upload/update/delete their own files (path pattern: `{user_id}/*`)
+
+**Files to edit:**
+
+- `src/pages/ProfilePage.tsx` — add camera icon overlay on avatar circle; on click, open file picker, upload to storage, update `profiles.avatar_url`
+- `src/pages/PersonalInfoPage.tsx` — show avatar with upload option
+- Any component showing user avatar — fall back to initials if no `avatar_url`
+
+---
+
+### 4. Real KYC Verification Flow
+
+Make the verification page actually upload documents, persist status, and let admins review.
+
+**Database migration:**
+
+- Create `verification_requests` table: `id`, `user_id`, `id_type`, `document_url`, `selfie_url`, `status` (pending/approved/rejected), `reviewed_by`, `reviewed_at`, `created_at`
+- RLS: users can insert/view own; admins can view all and update status
+- Create `kyc-documents` storage bucket (private) with user-scoped RLS
+
+**Files to edit:**
+
+- `src/pages/VerificationPage.tsx` — replace simulated flow with real file upload (document photo + selfie) to storage, then insert `verification_requests` row
+- `src/pages/admin/AdminUsersPage.tsx` or new `AdminVerificationPage.tsx` — list pending verification requests, view documents, approve/reject
+- `src/components/admin/AdminLayout.tsx` — add KYC/Verification nav item
+- `src/App.tsx` — add route for admin verification page
+- `src/pages/ProfilePage.tsx` — show verification badge based on DB status
+
+---
+
+---
+
+### Technical Summary
+
+
+| Feature          | DB Changes                              | Storage                | Edge Functions  | Files Changed |
+| ---------------- | --------------------------------------- | ---------------------- | --------------- | ------------- |
+| Admin realtime   | Enable realtime on 3 tables             | -                      | -               | 3             |
+| Notifications    | New `notifications` table + DB function | -                      | -               | 3-4           |
+| Profile photo    | `avatars` bucket                        | Yes                    | -               | 2-3           |
+| KYC verification | New `verification_requests` table       | `kyc-documents` bucket | -               | 4-5           |
+| Paystack         | New `payment_transactions` table        | -                      | 2 new functions | 1-2           |
+
+
+### Execution Order
+
+1. Admin realtime (quick, no dependencies)
+2. Notifications system (enables announcements to work end-to-end)
+3. Profile photo upload (storage bucket + UI)
+4. KYC verification (storage + new table + admin page)
+5. Paystack integration (requires API key from you first)
