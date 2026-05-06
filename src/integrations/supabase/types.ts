@@ -276,7 +276,11 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          matured_at: string | null
           project_id: string
+          project_name: string | null
+          roi_percent: number
+          status: string
           updated_at: string
           user_id: string
         }
@@ -284,7 +288,11 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          matured_at?: string | null
           project_id: string
+          project_name?: string | null
+          roi_percent?: number
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -292,7 +300,11 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          matured_at?: string | null
           project_id?: string
+          project_name?: string | null
+          roi_percent?: number
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -324,6 +336,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_matured_stake: { Args: { _stake_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

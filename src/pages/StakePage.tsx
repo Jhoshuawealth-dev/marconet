@@ -7,16 +7,20 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useNdc } from "@/contexts/NdcContext";
 import { useToast } from "@/hooks/use-toast";
 
-const names: Record<string, string> = {
-  "1": "Green Valley Soy", "2": "Sunrise Maize Field", "3": "Cassava Digital Farm",
-  "4": "Rice Paddy Project", "5": "Cocoa Bean Estate",
+const projectMeta: Record<string, { name: string; roi: number; months: number }> = {
+  "1": { name: "Green Valley Soy", roi: 18.5, months: 6 },
+  "2": { name: "Sunrise Maize Field", roi: 22, months: 4 },
+  "3": { name: "Cassava Digital Farm", roi: 15.2, months: 8 },
+  "4": { name: "Rice Paddy Project", roi: 20, months: 5 },
+  "5": { name: "Cocoa Bean Estate", roi: 25, months: 12 },
 };
 
 const StakePage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const projectId = id || "1";
-  const projectName = names[projectId] || "Project";
+  const meta = projectMeta[projectId] || { name: "Project", roi: 15, months: 6 };
+  const projectName = meta.name;
   const { balance, stakeProject, stakedProjects } = useNdc();
   const { toast } = useToast();
   const [amount, setAmount] = useState("");
@@ -31,7 +35,7 @@ const StakePage = () => {
       toast({ title: "Invalid amount", variant: "destructive" });
       return;
     }
-    const ok = stakeProject(projectId, num);
+    const ok = stakeProject(projectId, num, { projectName, roiPercent: meta.roi, durationMonths: meta.months });
     if (!ok) {
       toast({ title: "Insufficient balance", description: `You need ${num} NDC but have ${balance.toLocaleString()} NDC.`, variant: "destructive" });
       return;

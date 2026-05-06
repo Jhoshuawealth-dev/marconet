@@ -5,7 +5,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, ArrowUpRight } from "lucide-react";
+import { Search, Users, ShieldCheck, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -19,6 +19,7 @@ interface Profile {
 
 const AdminUsersPage = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [verifMap, setVerifMap] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -26,6 +27,15 @@ const AdminUsersPage = () => {
     const fetch = async () => {
       const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
       if (data) setProfiles(data);
+      const { data: vrs } = await supabase
+        .from("verification_requests" as any)
+        .select("user_id, status, created_at")
+        .order("created_at", { ascending: false });
+      if (vrs) {
+        const map: Record<string, string> = {};
+        (vrs as any[]).forEach((v) => { if (!map[v.user_id]) map[v.user_id] = v.status; });
+        setVerifMap(map);
+      }
       setLoading(false);
     };
     fetch();
@@ -33,6 +43,7 @@ const AdminUsersPage = () => {
     const channel = supabase
       .channel("admin-profiles")
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => fetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "verification_requests" }, () => fetch())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -91,7 +102,11 @@ const AdminUsersPage = () => {
                       {(p.full_name || "U").slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-foreground truncate">{p.full_name || "Unnamed"}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[13px] font-bold text-foreground truncate">{p.full_name || "Unnamed"}</p>
+                        {verifMap[p.user_id] === "approved" && <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
+                        {verifMap[p.user_id] === "pending" && <Clock className="h-3.5 w-3.5 text-accent-foreground shrink-0" />}
+                      </div>
                       <p className="text-[10px] text-muted-foreground">
                         {p.phone || "No phone"} · Joined {new Date(p.created_at).toLocaleDateString()}
                       </p>
