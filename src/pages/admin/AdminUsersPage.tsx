@@ -102,7 +102,11 @@ const AdminUsersPage = () => {
                       {(p.full_name || "U").slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-foreground truncate">{p.full_name || "Unnamed"}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[13px] font-bold text-foreground truncate">{p.full_name || "Unnamed"}</p>
+                        {verifMap[p.user_id] === "approved" && <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />}
+                        {verifMap[p.user_id] === "pending" && <Clock className="h-3.5 w-3.5 text-accent-foreground shrink-0" />}
+                      </div>
                       <p className="text-[10px] text-muted-foreground">
                         {p.phone || "No phone"} · Joined {new Date(p.created_at).toLocaleDateString()}
                       </p>
