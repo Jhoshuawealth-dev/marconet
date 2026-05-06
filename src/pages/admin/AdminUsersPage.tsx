@@ -5,7 +5,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, ArrowUpRight } from "lucide-react";
+import { Search, Users, ShieldCheck, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Profile {
