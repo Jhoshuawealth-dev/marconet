@@ -33,6 +33,17 @@ export interface CommunityPost {
   postType: "text" | "picture" | "video";
 }
 
+export interface StakeRecord {
+  id: string;
+  project_id: string;
+  project_name: string | null;
+  amount: number;
+  roi_percent: number;
+  status: string;
+  matured_at: string | null;
+  created_at: string;
+}
+
 interface NdcContextType {
   balance: number;
   transactions: Transaction[];
@@ -63,7 +74,10 @@ interface NdcContextType {
   startMining: () => void;
   stopMining: () => void;
   stakedProjects: Record<string, number>;
-  stakeProject: (projectId: string, amount: number) => boolean;
+  stakeRecords: StakeRecord[];
+  stakeProject: (projectId: string, amount: number, opts?: { projectName?: string; roiPercent?: number; durationMonths?: number }) => boolean;
+  claimStake: (stakeId: string) => Promise<{ ok: boolean; error?: string; payout?: number }>;
+  refreshStakes: () => Promise<void>;
   loading: boolean;
 }
 
