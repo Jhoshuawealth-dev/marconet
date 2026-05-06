@@ -19,6 +19,7 @@ interface Profile {
 
 const AdminUsersPage = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [verifMap, setVerifMap] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -26,6 +27,15 @@ const AdminUsersPage = () => {
     const fetch = async () => {
       const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
       if (data) setProfiles(data);
+      const { data: vrs } = await supabase
+        .from("verification_requests" as any)
+        .select("user_id, status, created_at")
+        .order("created_at", { ascending: false });
+      if (vrs) {
+        const map: Record<string, string> = {};
+        (vrs as any[]).forEach((v) => { if (!map[v.user_id]) map[v.user_id] = v.status; });
+        setVerifMap(map);
+      }
       setLoading(false);
     };
     fetch();
@@ -33,6 +43,7 @@ const AdminUsersPage = () => {
     const channel = supabase
       .channel("admin-profiles")
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => fetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "verification_requests" }, () => fetch())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
