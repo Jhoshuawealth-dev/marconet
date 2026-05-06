@@ -27,6 +27,7 @@ const ProfilePage = () => {
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -42,11 +43,18 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetchAvatar = async () => {
+    const fetchData = async () => {
       const { data } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single();
       if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      const { data: vr } = await supabase
+        .from("verification_requests" as any)
+        .select("status")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (vr && (vr as any[]).length > 0) setVerificationStatus((vr as any[])[0].status);
     };
-    fetchAvatar();
+    fetchData();
   }, [user]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
