@@ -107,6 +107,7 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   const [miningSession, setMiningSession] = useState(0);
   const [miningInterval, setMiningInterval] = useState<ReturnType<typeof setInterval> | null>(null);
   const [stakedProjects, setStakedProjects] = useState<Record<string, number>>({});
+  const [stakeRecords, setStakeRecords] = useState<StakeRecord[]>([]);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
 
