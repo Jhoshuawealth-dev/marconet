@@ -412,25 +412,53 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isMining, miningInterval, miningSession, earn]);
 
-  const stakeProject = useCallback((projectId: string, amount: number): boolean => {
+  const refreshStakes = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase.from("staked_projects").select("*").eq("user_id", userId);
+    if (data) {
+      const map: Record<string, number> = {};
+      data.forEach((s: any) => {
+        if (s.status === "active") map[s.project_id] = (map[s.project_id] || 0) + s.amount;
+      });
+      setStakedProjects(map);
+      setStakeRecords(data as any);
+    }
+  }, [userId]);
+
+  const stakeProject = useCallback((projectId: string, amount: number, opts?: { projectName?: string; roiPercent?: number; durationMonths?: number }): boolean => {
     if (balance < amount) return false;
+    if (!userId) return false;
     setBalance(b => {
       const nb = b - amount;
       updateBalance(nb);
       return nb;
     });
-    setStakedProjects(prev => {
-      const newAmount = (prev[projectId] || 0) + amount;
-      if (userId) {
-        // Upsert stake
-        supabase.from("staked_projects")
-          .upsert({ user_id: userId, project_id: projectId, amount: newAmount }, { onConflict: "user_id,project_id" });
-      }
-      return { ...prev, [projectId]: newAmount };
-    });
-    insertTransaction(amount, "Stake Investment", `Staked in project`, "spend");
+    const months = opts?.durationMonths ?? 6;
+    const matured = new Date();
+    matured.setMonth(matured.getMonth() + months);
+    supabase.from("staked_projects").insert({
+      user_id: userId,
+      project_id: projectId,
+      amount,
+      project_name: opts?.projectName ?? null,
+      roi_percent: opts?.roiPercent ?? 15,
+      matured_at: matured.toISOString(),
+      status: "active",
+    } as any).then(() => refreshStakes());
+    setStakedProjects(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + amount }));
+    insertTransaction(amount, "Stake Investment", `Staked in ${opts?.projectName || "project"}`, "spend");
     return true;
-  }, [balance, userId, updateBalance, insertTransaction]);
+  }, [balance, userId, updateBalance, insertTransaction, refreshStakes]);
+
+  const claimStake = useCallback(async (stakeId: string) => {
+    const { data, error } = await supabase.rpc("claim_matured_stake" as any, { _stake_id: stakeId });
+    if (error) return { ok: false, error: error.message };
+    const result = data as any;
+    if (!result?.ok) return { ok: false, error: result?.error || "Failed to claim" };
+    if (typeof result.balance === "number") setBalance(result.balance);
+    await refreshStakes();
+    return { ok: true, payout: result.payout };
+  }, [refreshStakes]);
 
   return (
     <NdcContext.Provider value={{
@@ -443,7 +471,7 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
       likePost, commentPost, sharePost,
       communityPosts, createPost, createMediaPost, approvePost, harvestAction,
       isMining, miningSession, startMining, stopMining,
-      stakedProjects, stakeProject,
+      stakedProjects, stakeRecords, stakeProject, claimStake, refreshStakes,
       loading,
     }}>
       {children}
