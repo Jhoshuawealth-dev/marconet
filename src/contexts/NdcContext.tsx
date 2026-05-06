@@ -162,12 +162,17 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
         // Staked projects
         const { data: stakes } = await supabase
           .from("staked_projects")
-          .select("project_id, amount")
+          .select("*")
           .eq("user_id", userId);
         if (stakes) {
           const map: Record<string, number> = {};
-          stakes.forEach(s => { map[s.project_id] = s.amount; });
+          stakes.forEach((s: any) => {
+            if (s.status === "active") {
+              map[s.project_id] = (map[s.project_id] || 0) + s.amount;
+            }
+          });
           setStakedProjects(map);
+          setStakeRecords(stakes as any);
         }
 
         // Community posts (all visible)
