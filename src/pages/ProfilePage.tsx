@@ -107,7 +107,21 @@ const ProfilePage = () => {
               </div>
             </button>
             <div>
-              <h1 className="text-xl font-display font-extrabold text-foreground">{displayName}</h1>
+              <div className="flex items-center justify-center gap-1.5">
+                <h1 className="text-xl font-display font-extrabold text-foreground">{displayName}</h1>
+                {verificationStatus === "approved" && (
+                  <span title="Verified" className="inline-flex">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                  </span>
+                )}
+              </div>
+              {verificationStatus && verificationStatus !== "approved" && (
+                <span className={`inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                  verificationStatus === "pending" ? "bg-accent/20 text-accent-foreground" : "bg-destructive/10 text-destructive"
+                }`}>
+                  {verificationStatus === "pending" ? "Verification pending" : "Verification rejected"}
+                </span>
+              )}
               <p className="text-[11px] text-muted-foreground mt-1">
                 {user?.email}
               </p>
