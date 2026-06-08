@@ -71,8 +71,11 @@ interface NdcContextType {
   harvestAction: () => boolean;
   isMining: boolean;
   miningSession: number;
+  miningMultiplier: number;
   startMining: () => void;
   stopMining: () => void;
+  activeUpgrades: ActiveUpgrade[];
+  purchaseUpgrade: (upgrade: { id: string; label: string; cost: number; multiplier: number; durationHours: number }) => Promise<{ ok: boolean; error?: string }>;
   stakedProjects: Record<string, number>;
   stakeRecords: StakeRecord[];
   stakeProject: (projectId: string, amount: number, opts?: { projectName?: string; roiPercent?: number; durationMonths?: number }) => boolean;
@@ -80,6 +83,14 @@ interface NdcContextType {
   refreshStakes: () => Promise<void>;
   loading: boolean;
 }
+
+export interface ActiveUpgrade {
+  id: string;
+  upgrade_id: string;
+  multiplier: number;
+  expires_at: string;
+}
+
 
 const NdcContext = createContext<NdcContextType | null>(null);
 
