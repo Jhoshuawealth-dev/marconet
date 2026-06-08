@@ -8,21 +8,34 @@ import { useToast } from "@/hooks/use-toast";
 import PageTransition from "@/components/app/PageTransition";
 
 const upgrades = [
-  { name: "Hash Boost Pro", desc: "2x mining speed for 24h", cost: "500 NDC", icon: Zap },
-  { name: "Network Shield", desc: "Priority mining lanes", cost: "800 NDC", icon: ShieldCheck },
-  { name: "Auto-Harvest", desc: "Automatic yield collection", cost: "1,200 NDC", icon: Cpu },
+  { id: "hash_boost_pro", name: "Hash Boost Pro", desc: "2x mining speed for 24h", cost: 500, multiplier: 2, durationHours: 24, icon: Zap },
+  { id: "network_shield", name: "Network Shield", desc: "1.5x mining speed for 7 days", cost: 800, multiplier: 1.5, durationHours: 24 * 7, icon: ShieldCheck },
+  { id: "auto_harvest", name: "Auto-Harvest", desc: "3x mining speed for 12h", cost: 1200, multiplier: 3, durationHours: 12, icon: Cpu },
 ];
 
 const MiningPage = () => {
-  const { isMining, miningSession, startMining, stopMining, balance, transactions } = useNdc();
+  const { isMining, miningSession, startMining, stopMining, balance, transactions, miningMultiplier, activeUpgrades, purchaseUpgrade } = useNdc();
   const { toast } = useToast();
 
   // Show only mining-related transactions
   const miningHistory = transactions.filter(t => t.title === "Mining Reward");
 
-  const handleUpgrade = (name: string) => {
-    toast({ title: "Coming Soon", description: `${name} will be available in the next update.` });
+  const handleUpgrade = async (u: typeof upgrades[number]) => {
+    if (balance < u.cost) {
+      toast({ title: "Insufficient NDC", description: `You need ${u.cost} NDC to buy ${u.name}.`, variant: "destructive" });
+      return;
+    }
+    const res = await purchaseUpgrade({ id: u.id, label: u.name, cost: u.cost, multiplier: u.multiplier, durationHours: u.durationHours });
+    if (res.ok) {
+      toast({ title: "Upgrade activated", description: `${u.name} is now boosting your mining.` });
+    } else {
+      toast({ title: "Purchase failed", description: res.error || "Try again.", variant: "destructive" });
+    }
   };
+
+  const isUpgradeActive = (id: string) =>
+    activeUpgrades.some(a => a.upgrade_id === id && new Date(a.expires_at).getTime() > Date.now());
+
 
   return (
     <PageTransition>
