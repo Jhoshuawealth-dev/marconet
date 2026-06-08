@@ -120,7 +120,15 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   const [stakedProjects, setStakedProjects] = useState<Record<string, number>>({});
   const [stakeRecords, setStakeRecords] = useState<StakeRecord[]>([]);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
+  const [activeUpgrades, setActiveUpgrades] = useState<ActiveUpgrade[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const now = Date.now();
+  const miningMultiplier = activeUpgrades.reduce(
+    (m, u) => (new Date(u.expires_at).getTime() > now ? m * Number(u.multiplier) : m),
+    1,
+  );
+
 
   // ─── Load all state from DB on auth ───
   useEffect(() => {
