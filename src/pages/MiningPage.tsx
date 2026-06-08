@@ -113,27 +113,41 @@ const MiningPage = () => {
 
           {/* Mining Upgrades */}
           <div>
-            <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Mining Upgrades</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display font-bold text-foreground text-[15px]">Mining Upgrades</h2>
+              {miningMultiplier > 1 && (
+                <span className="text-[10px] font-bold text-accent">{miningMultiplier.toFixed(1)}× boost active</span>
+              )}
+            </div>
             <div className="space-y-3">
-              {upgrades.map((u) => (
-                <Card key={u.name} className="border border-border/60 shadow-premium rounded-2xl">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-accent/12 flex items-center justify-center">
-                      <u.icon className="h-5 w-5 text-accent" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-[13px] text-foreground">{u.name}</h3>
-                      <p className="text-[10px] text-muted-foreground">{u.desc}</p>
-                    </div>
-                    <Button size="sm" variant="outline" className="text-[10px] h-8 rounded-xl font-bold border-border/60"
-                      onClick={() => handleUpgrade(u.name)}>
-                      {u.cost}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+              {upgrades.map((u) => {
+                const active = isUpgradeActive(u.id);
+                return (
+                  <Card key={u.id} className="border border-border/60 shadow-premium rounded-2xl">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-accent/12 flex items-center justify-center">
+                        <u.icon className="h-5 w-5 text-accent" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-[13px] text-foreground">{u.name}</h3>
+                        <p className="text-[10px] text-muted-foreground">{u.desc}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={active ? "default" : "outline"}
+                        disabled={active}
+                        className="text-[10px] h-8 rounded-xl font-bold border-border/60"
+                        onClick={() => handleUpgrade(u)}
+                      >
+                        {active ? "Active" : `${u.cost.toLocaleString()} NDC`}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
+
 
           {/* Mining History - Real data */}
           <div>
