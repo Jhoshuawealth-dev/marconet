@@ -79,7 +79,7 @@ const MiningPage = () => {
             <Card className="border border-border/60 shadow-premium rounded-2xl">
               <CardContent className="p-4 text-center">
                 <Zap className="h-5 w-5 text-accent mx-auto mb-1.5" />
-                <p className="text-lg font-display font-extrabold text-foreground text-metric">{isMining ? "42.5" : "0.0"}</p>
+                <p className="text-lg font-display font-extrabold text-foreground text-metric">{isMining ? (42.5 * miningMultiplier).toFixed(1) : "0.0"}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Hash Power (MH/s)</p>
               </CardContent>
             </Card>
