@@ -230,6 +230,13 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
             postType: p.post_type as "text" | "picture" | "video",
           })));
         }
+        // Active mining upgrades
+        const { data: ups } = await supabase
+          .from("user_upgrades" as any)
+          .select("*")
+          .eq("user_id", userId)
+          .gt("expires_at", new Date().toISOString());
+        if (ups) setActiveUpgrades(ups as any);
       } catch (err) {
         console.error("Failed to load NDC state:", err);
       }
