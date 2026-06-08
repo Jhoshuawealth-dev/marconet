@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useNdc, NDC_RATES } from "@/contexts/NdcContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PageTransition from "@/components/app/PageTransition";
+import AdSlot from "@/components/app/AdSlot";
 
 const quickLinks = [
   { label: "Mining", icon: Zap, to: "/mining", gradient: "gradient-accent" },
