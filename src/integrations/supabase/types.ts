@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          audience_interests: Json
+          clicks: number
+          created_at: string
+          daily_budget: number
+          duration_label: string
+          end_date: string | null
+          goal: string
+          headline: string
+          id: string
+          impressions: number
+          name: string
+          primary_text: string
+          spend: number
+          start_date: string
+          status: string
+          total_budget: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audience_interests?: Json
+          clicks?: number
+          created_at?: string
+          daily_budget?: number
+          duration_label?: string
+          end_date?: string | null
+          goal?: string
+          headline?: string
+          id?: string
+          impressions?: number
+          name: string
+          primary_text?: string
+          spend?: number
+          start_date?: string
+          status?: string
+          total_budget?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audience_interests?: Json
+          clicks?: number
+          created_at?: string
+          daily_budget?: number
+          duration_label?: string
+          end_date?: string | null
+          goal?: string
+          headline?: string
+          id?: string
+          impressions?: number
+          name?: string
+          primary_text?: string
+          spend?: number
+          start_date?: string
+          status?: string
+          total_budget?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ad_events: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          event_type: string
+          id: string
+          viewer_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          viewer_id?: string | null
+        }
+        Relationships: []
+      }
       admin_requests: {
         Row: {
           id: string
@@ -331,6 +418,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_upgrades: {
+        Row: {
+          cost: number
+          created_at: string
+          expires_at: string
+          id: string
+          multiplier: number
+          upgrade_id: string
+          user_id: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          multiplier?: number
+          upgrade_id: string
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          multiplier?: number
+          upgrade_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -345,6 +462,20 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      purchase_mining_upgrade: {
+        Args: {
+          _cost: number
+          _duration_hours: number
+          _label: string
+          _multiplier: number
+          _upgrade_id: string
+        }
+        Returns: Json
+      }
+      record_ad_event: {
+        Args: { _campaign_id: string; _event_type: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "super_admin" | "user"
