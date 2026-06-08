@@ -521,9 +521,11 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
       likesUsedToday, commentsUsedToday, sharesUsedToday,
       likePost, commentPost, sharePost,
       communityPosts, createPost, createMediaPost, approvePost, harvestAction,
-      isMining, miningSession, startMining, stopMining,
+      isMining, miningSession, miningMultiplier, startMining, stopMining,
+      activeUpgrades, purchaseUpgrade,
       stakedProjects, stakeRecords, stakeProject, claimStake, refreshStakes,
       loading,
+
     }}>
       {children}
     </NdcContext.Provider>
