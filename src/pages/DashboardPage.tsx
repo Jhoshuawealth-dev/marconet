@@ -163,6 +163,9 @@ const DashboardPage = () => {
             ))}
           </div>
 
+          <AdSlot />
+
+
           {/* Recent Activity */}
           {transactions.length > 0 && (
             <div>
