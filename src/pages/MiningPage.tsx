@@ -8,21 +8,34 @@ import { useToast } from "@/hooks/use-toast";
 import PageTransition from "@/components/app/PageTransition";
 
 const upgrades = [
-  { name: "Hash Boost Pro", desc: "2x mining speed for 24h", cost: "500 NDC", icon: Zap },
-  { name: "Network Shield", desc: "Priority mining lanes", cost: "800 NDC", icon: ShieldCheck },
-  { name: "Auto-Harvest", desc: "Automatic yield collection", cost: "1,200 NDC", icon: Cpu },
+  { id: "hash_boost_pro", name: "Hash Boost Pro", desc: "2x mining speed for 24h", cost: 500, multiplier: 2, durationHours: 24, icon: Zap },
+  { id: "network_shield", name: "Network Shield", desc: "1.5x mining speed for 7 days", cost: 800, multiplier: 1.5, durationHours: 24 * 7, icon: ShieldCheck },
+  { id: "auto_harvest", name: "Auto-Harvest", desc: "3x mining speed for 12h", cost: 1200, multiplier: 3, durationHours: 12, icon: Cpu },
 ];
 
 const MiningPage = () => {
-  const { isMining, miningSession, startMining, stopMining, balance, transactions } = useNdc();
+  const { isMining, miningSession, startMining, stopMining, balance, transactions, miningMultiplier, activeUpgrades, purchaseUpgrade } = useNdc();
   const { toast } = useToast();
 
   // Show only mining-related transactions
   const miningHistory = transactions.filter(t => t.title === "Mining Reward");
 
-  const handleUpgrade = (name: string) => {
-    toast({ title: "Coming Soon", description: `${name} will be available in the next update.` });
+  const handleUpgrade = async (u: typeof upgrades[number]) => {
+    if (balance < u.cost) {
+      toast({ title: "Insufficient NDC", description: `You need ${u.cost} NDC to buy ${u.name}.`, variant: "destructive" });
+      return;
+    }
+    const res = await purchaseUpgrade({ id: u.id, label: u.name, cost: u.cost, multiplier: u.multiplier, durationHours: u.durationHours });
+    if (res.ok) {
+      toast({ title: "Upgrade activated", description: `${u.name} is now boosting your mining.` });
+    } else {
+      toast({ title: "Purchase failed", description: res.error || "Try again.", variant: "destructive" });
+    }
   };
+
+  const isUpgradeActive = (id: string) =>
+    activeUpgrades.some(a => a.upgrade_id === id && new Date(a.expires_at).getTime() > Date.now());
+
 
   return (
     <PageTransition>
@@ -66,7 +79,7 @@ const MiningPage = () => {
             <Card className="border border-border/60 shadow-premium rounded-2xl">
               <CardContent className="p-4 text-center">
                 <Zap className="h-5 w-5 text-accent mx-auto mb-1.5" />
-                <p className="text-lg font-display font-extrabold text-foreground text-metric">{isMining ? "42.5" : "0.0"}</p>
+                <p className="text-lg font-display font-extrabold text-foreground text-metric">{isMining ? (42.5 * miningMultiplier).toFixed(1) : "0.0"}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Hash Power (MH/s)</p>
               </CardContent>
             </Card>
@@ -100,27 +113,41 @@ const MiningPage = () => {
 
           {/* Mining Upgrades */}
           <div>
-            <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Mining Upgrades</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display font-bold text-foreground text-[15px]">Mining Upgrades</h2>
+              {miningMultiplier > 1 && (
+                <span className="text-[10px] font-bold text-accent">{miningMultiplier.toFixed(1)}× boost active</span>
+              )}
+            </div>
             <div className="space-y-3">
-              {upgrades.map((u) => (
-                <Card key={u.name} className="border border-border/60 shadow-premium rounded-2xl">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-accent/12 flex items-center justify-center">
-                      <u.icon className="h-5 w-5 text-accent" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-[13px] text-foreground">{u.name}</h3>
-                      <p className="text-[10px] text-muted-foreground">{u.desc}</p>
-                    </div>
-                    <Button size="sm" variant="outline" className="text-[10px] h-8 rounded-xl font-bold border-border/60"
-                      onClick={() => handleUpgrade(u.name)}>
-                      {u.cost}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+              {upgrades.map((u) => {
+                const active = isUpgradeActive(u.id);
+                return (
+                  <Card key={u.id} className="border border-border/60 shadow-premium rounded-2xl">
+                    <CardContent className="p-4 flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-accent/12 flex items-center justify-center">
+                        <u.icon className="h-5 w-5 text-accent" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-[13px] text-foreground">{u.name}</h3>
+                        <p className="text-[10px] text-muted-foreground">{u.desc}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={active ? "default" : "outline"}
+                        disabled={active}
+                        className="text-[10px] h-8 rounded-xl font-bold border-border/60"
+                        onClick={() => handleUpgrade(u)}
+                      >
+                        {active ? "Active" : `${u.cost.toLocaleString()} NDC`}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
+
 
           {/* Mining History - Real data */}
           <div>
