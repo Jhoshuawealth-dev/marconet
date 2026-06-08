@@ -416,10 +416,15 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
     setIsMining(true);
     setMiningSession(0);
     const interval = setInterval(() => {
-      setMiningSession(prev => prev + 1);
+      // Apply current multiplier on each tick (round to nearest integer)
+      const liveMult = activeUpgrades.reduce(
+        (m, u) => (new Date(u.expires_at).getTime() > Date.now() ? m * Number(u.multiplier) : m),
+        1,
+      );
+      setMiningSession(prev => prev + Math.max(1, Math.round(liveMult)));
     }, 3000);
     setMiningInterval(interval);
-  }, [isMining]);
+  }, [isMining, activeUpgrades]);
 
   const stopMining = useCallback(() => {
     if (!isMining) return;
@@ -430,6 +435,33 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
       earn(miningSession, "Mining Reward", `Mined ${miningSession} NDC this session`);
     }
   }, [isMining, miningInterval, miningSession, earn]);
+
+  const refreshUpgrades = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("user_upgrades" as any)
+      .select("*")
+      .eq("user_id", userId)
+      .gt("expires_at", new Date().toISOString());
+    if (data) setActiveUpgrades(data as any);
+  }, [userId]);
+
+  const purchaseUpgrade = useCallback(async (upgrade: { id: string; label: string; cost: number; multiplier: number; durationHours: number }) => {
+    const { data, error } = await supabase.rpc("purchase_mining_upgrade" as any, {
+      _upgrade_id: upgrade.id,
+      _cost: upgrade.cost,
+      _multiplier: upgrade.multiplier,
+      _duration_hours: upgrade.durationHours,
+      _label: upgrade.label,
+    });
+    if (error) return { ok: false, error: error.message };
+    const result = data as any;
+    if (!result?.ok) return { ok: false, error: result?.error || "Purchase failed" };
+    if (typeof result.balance === "number") setBalance(result.balance);
+    await refreshUpgrades();
+    return { ok: true };
+  }, [refreshUpgrades]);
+
 
   const refreshStakes = useCallback(async () => {
     if (!userId) return;
