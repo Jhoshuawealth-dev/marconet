@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           audience_interests: Json
           clicks: number
+          conversions: number
           created_at: string
           daily_budget: number
           duration_label: string
@@ -38,6 +39,7 @@ export type Database = {
         Insert: {
           audience_interests?: Json
           clicks?: number
+          conversions?: number
           created_at?: string
           daily_budget?: number
           duration_label?: string
@@ -58,6 +60,7 @@ export type Database = {
         Update: {
           audience_interests?: Json
           clicks?: number
+          conversions?: number
           created_at?: string
           daily_budget?: number
           duration_label?: string
