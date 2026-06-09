@@ -41,11 +41,18 @@ const ProfilePage = () => {
     }
   }, [isDark]);
 
+  const resolveAvatar = async (pathOrUrl: string | null) => {
+    if (!pathOrUrl) { setAvatarUrl(null); return; }
+    if (pathOrUrl.startsWith("http")) { setAvatarUrl(pathOrUrl); return; }
+    const { data } = await supabase.storage.from("avatars").createSignedUrl(pathOrUrl, 60 * 60 * 24 * 7);
+    setAvatarUrl(data?.signedUrl ?? null);
+  };
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       const { data } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single();
-      if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      await resolveAvatar(data?.avatar_url ?? null);
       const { data: vr } = await supabase
         .from("verification_requests" as any)
         .select("status")
@@ -60,14 +67,18 @@ const ProfilePage = () => {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Please choose an image under 5 MB.", variant: "destructive" });
+      return;
+    }
     setUploading(true);
     try {
-      const path = `${user.id}/avatar-${Date.now()}`;
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-      await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", user.id);
-      setAvatarUrl(urlData.publicUrl);
+      await supabase.from("profiles").update({ avatar_url: path }).eq("user_id", user.id);
+      await resolveAvatar(path);
       toast({ title: "Profile photo updated ✅" });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });

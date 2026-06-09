@@ -97,7 +97,7 @@ const DashboardPage = () => {
                     🌱 Sow
                   </Button>
                 </Link>
-                <Button size="sm" variant="outline" onClick={harvestClick} className="flex-1 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 font-bold text-xs h-10 rounded-2xl transition-all active:scale-[0.97]">
+                <Button size="sm" onClick={harvestClick} className="flex-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-xs h-10 rounded-2xl shadow-sm transition-all active:scale-[0.97]">
                   🌾 Harvest ({monthlyHarvests}/4)
                 </Button>
               </div>

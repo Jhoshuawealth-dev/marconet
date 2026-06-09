@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -128,6 +128,10 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
     (m, u) => (new Date(u.expires_at).getTime() > now ? m * Number(u.multiplier) : m),
     1,
   );
+
+  // Keep a ref to the latest upgrades so the running mining interval always sees fresh boosts
+  const upgradesRef = useRef<ActiveUpgrade[]>([]);
+  useEffect(() => { upgradesRef.current = activeUpgrades; }, [activeUpgrades]);
 
 
   // ─── Load all state from DB on auth ───
@@ -432,15 +436,15 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
     setIsMining(true);
     setMiningSession(0);
     const interval = setInterval(() => {
-      // Apply current multiplier on each tick (round to nearest integer)
-      const liveMult = activeUpgrades.reduce(
+      // Always read the latest upgrades via ref so newly-purchased boosts apply immediately
+      const liveMult = upgradesRef.current.reduce(
         (m, u) => (new Date(u.expires_at).getTime() > Date.now() ? m * Number(u.multiplier) : m),
         1,
       );
       setMiningSession(prev => prev + Math.max(1, Math.round(liveMult)));
     }, 3000);
     setMiningInterval(interval);
-  }, [isMining, activeUpgrades]);
+  }, [isMining]);
 
   const stopMining = useCallback(() => {
     if (!isMining) return;
