@@ -18,18 +18,11 @@ const AdSlot = () => {
   useEffect(() => {
     let active = true;
     (async () => {
-      // Pick one active campaign not owned by current user
-      let query = supabase
-        .from("ad_campaigns" as any)
-        .select("id, headline, primary_text, user_id")
-        .eq("status", "active")
-        .limit(10);
-      const { data } = await query;
-      if (!active || !data) return;
-      const pool = (data as any[]).filter(c => c.user_id !== user?.id && c.headline);
-      if (pool.length === 0) { setAd(null); return; }
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      setAd({ id: pick.id, headline: pick.headline, primary_text: pick.primary_text });
+      const { data, error } = await supabase.rpc("get_ad_for_delivery" as any);
+      if (!active || error || !data) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.headline) { setAd(null); return; }
+      setAd({ id: row.id, headline: row.headline, primary_text: row.primary_text });
     })();
     return () => { active = false; };
   }, [user]);

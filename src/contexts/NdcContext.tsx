@@ -247,16 +247,25 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   }, [userId]);
 
   // ─── DB helpers ───
-  const updateBalance = useCallback(async (newBalance: number) => {
-    if (!userId) return;
-    await supabase.from("profiles").update({ ndc_balance: newBalance }).eq("user_id", userId);
-  }, [userId]);
+  // Balance updates are performed atomically inside record_ndc_transaction (SECURITY DEFINER RPC).
+  // This helper remains a no-op for backwards compatibility with optimistic UI callsites.
+  const updateBalance = useCallback(async (_newBalance: number) => {
+    // intentionally no-op — server is the source of truth
+  }, []);
 
   const insertTransaction = useCallback(async (amount: number, title: string, desc: string, type: "earn" | "spend") => {
     if (!userId) return;
-    await supabase.from("ndc_transactions").insert({
-      user_id: userId, title, description: desc, amount, type,
+    const { data, error } = await supabase.rpc("record_ndc_transaction" as any, {
+      _amount: amount, _title: title, _description: desc, _type: type,
     });
+    if (error) {
+      console.error("record_ndc_transaction failed:", error);
+      return;
+    }
+    const result = data as any;
+    if (result?.ok && typeof result.balance === "number") {
+      setBalance(result.balance);
+    }
   }, [userId]);
 
   // ─── Actions ───

@@ -454,6 +454,14 @@ export type Database = {
     }
     Functions: {
       claim_matured_stake: { Args: { _stake_id: string }; Returns: Json }
+      get_ad_for_delivery: {
+        Args: never
+        Returns: {
+          headline: string
+          id: string
+          primary_text: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -474,6 +482,15 @@ export type Database = {
       }
       record_ad_event: {
         Args: { _campaign_id: string; _event_type: string }
+        Returns: Json
+      }
+      record_ndc_transaction: {
+        Args: {
+          _amount: number
+          _description: string
+          _title: string
+          _type: string
+        }
         Returns: Json
       }
     }
