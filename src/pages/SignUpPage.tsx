@@ -110,6 +110,17 @@ const SignUpPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="flex flex-col items-center">
+                <AvatarUploader
+                  currentUrl={avatarPreview}
+                  fallbackText={(firstName[0] || "N") + (lastName[0] || "D")}
+                  onUpload={handleAvatarSelect}
+                  onRemove={avatarPreview ? handleAvatarRemove : undefined}
+                  size={72}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">Optional profile photo</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-[13px] font-semibold text-foreground">First name</Label>
