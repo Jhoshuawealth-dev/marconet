@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PageTransition from "@/components/app/PageTransition";
+import AvatarUploader from "@/components/app/AvatarUploader";
 
 const SignUpPage = () => {
   const [showPw, setShowPw] = useState(false);
@@ -15,9 +16,22 @@ const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleAvatarSelect = async (file: File) => {
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const handleAvatarRemove = () => {
+    setAvatarFile(null);
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarPreview(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +44,7 @@ const SignUpPage = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -41,13 +55,27 @@ const SignUpPage = () => {
         },
       },
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Account created! 🎉", description: "Check your email to verify your account, or continue to the dashboard." });
-      navigate("/dashboard");
+      return;
     }
+
+    // Upload avatar if provided and session available
+    const userId = signUpData.user?.id;
+    if (avatarFile && userId) {
+      try {
+        const path = `${userId}/avatar-${Date.now()}.jpg`;
+        const { error: upErr } = await supabase.storage.from("avatars").upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+        if (!upErr) {
+          await supabase.from("profiles").update({ avatar_url: path }).eq("user_id", userId);
+        }
+      } catch { /* non-fatal */ }
+    }
+
+    setLoading(false);
+    toast({ title: "Account created! 🎉", description: "Check your email to verify your account, or continue to the dashboard." });
+    navigate("/dashboard");
   };
 
   const handleSocialLogin = async (provider: "google" | "apple") => {
