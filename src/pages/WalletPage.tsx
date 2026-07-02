@@ -66,7 +66,7 @@ const WalletPage = () => {
                   </Button>
                 </Link>
                 <Link to="/wallet/transfer" className="flex-1">
-                  <Button size="sm" variant="outline" className="w-full border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 font-bold text-xs h-10 rounded-2xl gap-1 transition-all active:scale-[0.97]">
+                  <Button size="sm" className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-xs h-10 rounded-2xl gap-1 shadow-sm transition-all active:scale-[0.97]">
                     <Send className="h-3.5 w-3.5" /> Transfer
                   </Button>
                 </Link>
