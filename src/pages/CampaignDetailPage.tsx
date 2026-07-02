@@ -1,4 +1,4 @@
-import { ArrowLeft, Pause, Play, Trash2, Eye, MousePointer, DollarSign, Target } from "lucide-react";
+import { ArrowLeft, Pause, Play, Trash2, Eye, MousePointer, DollarSign, Target, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -8,6 +8,7 @@ import BottomNav from "@/components/app/BottomNav";
 import PageTransition from "@/components/app/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { exportCSV } from "@/lib/csvExport";
 
 interface Campaign {
   id: string;
@@ -144,7 +145,22 @@ const CampaignDetailPage = () => {
 
           <Card className="border shadow-sm">
             <CardContent className="p-4">
-              <h3 className="font-bold text-sm text-foreground mb-3">Engagement (7 days)</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-sm text-foreground">Engagement (7 days)</h3>
+                <Button size="sm" variant="outline" onClick={() => exportCSV(
+                  `${campaign.name.replace(/\s+/g, "-")}-performance-${new Date().toISOString().slice(0,10)}`,
+                  chartData.map(d => ({
+                    Day: d.day,
+                    Impressions: d.impressions,
+                    Clicks: d.clicks,
+                    Conversions: d.conversions,
+                    CTR_percent: d.impressions > 0 ? +((d.clicks / d.impressions) * 100).toFixed(2) : 0,
+                    Spend_NDC: d.spend,
+                  }))
+                )} className="h-7 rounded-full text-[10px] font-semibold gap-1">
+                  <Download className="h-3 w-3" /> CSV
+                </Button>
+              </div>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={chartData} margin={{ left: -20, right: 8, top: 4 }}>
                   <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
