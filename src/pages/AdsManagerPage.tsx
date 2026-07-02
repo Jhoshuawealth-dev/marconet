@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, Eye, MousePointer, Plus, Inbox, Target } from "lucide-react";
+import { BarChart3, Eye, MousePointer, Plus, Inbox, Target, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
@@ -8,6 +8,7 @@ import PageTransition from "@/components/app/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Legend } from "recharts";
+import { exportCSV } from "@/lib/csvExport";
 
 interface Campaign {
   id: string;
@@ -109,7 +110,25 @@ const AdsManagerPage = () => {
           {perCampaign.length > 0 && (
             <Card className="border border-border/60 shadow-premium rounded-2xl">
               <CardContent className="p-4">
-                <h3 className="font-display font-bold text-foreground text-[13px] mb-3">Performance by campaign</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display font-bold text-foreground text-[13px]">Performance by campaign</h3>
+                  <Button size="sm" variant="outline" onClick={() => exportCSV(
+                    `campaigns-performance-${new Date().toISOString().slice(0,10)}`,
+                    campaigns.map(c => ({
+                      Campaign: c.name,
+                      Status: c.status,
+                      Impressions: c.impressions,
+                      Clicks: c.clicks,
+                      Conversions: c.conversions || 0,
+                      CTR_percent: c.impressions > 0 ? +((c.clicks / c.impressions) * 100).toFixed(2) : 0,
+                      Spend_NDC: c.spend,
+                      Daily_Budget_NDC: c.daily_budget,
+                      Total_Budget_NDC: c.total_budget,
+                    }))
+                  )} className="h-7 rounded-full text-[10px] font-semibold gap-1">
+                    <Download className="h-3 w-3" /> CSV
+                  </Button>
+                </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={perCampaign} margin={{ left: -20, right: 4, top: 4 }}>
                     <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
