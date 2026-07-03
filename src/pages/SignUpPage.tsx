@@ -80,6 +80,13 @@ const SignUpPage = () => {
       } catch { /* non-fatal */ }
     }
 
+    // Apply referral code if provided (needs an active session)
+    if (referralCode.trim() && signUpData.session) {
+      try {
+        await supabase.rpc("apply_referral_code" as any, { _code: referralCode.trim() });
+      } catch { /* non-fatal */ }
+    }
+
     setLoading(false);
     toast({ title: "Account created! 🎉", description: "Check your email to verify your account, or continue to the dashboard." });
     navigate("/dashboard");
