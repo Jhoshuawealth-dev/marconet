@@ -35,6 +35,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import VerificationPage from "./pages/VerificationPage";
 import FieldsPage from "./pages/FieldsPage";
 import MarketPage from "./pages/MarketPage";
+import ReferralsPage from "./pages/ReferralsPage";
 import AboutPage from "./pages/AboutPage";
 import CareersPage from "./pages/CareersPage";
 import BlogPage from "./pages/BlogPage";
@@ -108,6 +109,7 @@ const AnimatedRoutes = () => {
         <Route path="/verification" element={<P><VerificationPage /></P>} />
         <Route path="/fields" element={<P><FieldsPage /></P>} />
         <Route path="/market" element={<P><MarketPage /></P>} />
+        <Route path="/referrals" element={<P><ReferralsPage /></P>} />
         <Route path="/admin/request" element={<P><AdminRequestAccessPage /></P>} />
 
         {/* Admin routes */}

@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Eye, EyeOff, Leaf, ArrowRight, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Leaf, ArrowRight, Loader2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PageTransition from "@/components/app/PageTransition";
@@ -18,8 +18,15 @@ const SignUpPage = () => {
   const [password, setPassword] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) setReferralCode(ref.toUpperCase());
+  }, [searchParams]);
   const { toast } = useToast();
 
   const handleAvatarSelect = async (file: File) => {
@@ -70,6 +77,13 @@ const SignUpPage = () => {
         if (!upErr) {
           await supabase.from("profiles").update({ avatar_url: path }).eq("user_id", userId);
         }
+      } catch { /* non-fatal */ }
+    }
+
+    // Apply referral code if provided (needs an active session)
+    if (referralCode.trim() && signUpData.session) {
+      try {
+        await supabase.rpc("apply_referral_code" as any, { _code: referralCode.trim() });
       } catch { /* non-fatal */ }
     }
 
@@ -155,6 +169,15 @@ const SignUpPage = () => {
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ref" className="text-[13px] font-semibold text-foreground flex items-center gap-1.5">
+                  <Gift className="h-3.5 w-3.5 text-accent" /> Referral code <span className="text-muted-foreground font-normal">(optional)</span>
+                </Label>
+                <Input id="ref" placeholder="MN123ABC" value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                  className="h-12 rounded-2xl bg-muted/50 border-border/60 text-[14px] focus:bg-card font-mono uppercase" />
+                {referralCode && <p className="text-[10px] text-accent font-semibold">You'll get 100 NDC bonus 🎁</p>}
               </div>
 
               <p className="text-[11px] text-muted-foreground leading-relaxed">

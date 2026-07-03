@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Zap, Cpu, TrendingUp, Wifi, WifiOff, Clock, Gift, ShieldCheck, Inbox } from "lucide-react";
+import { Zap, Cpu, TrendingUp, Wifi, WifiOff, Clock, Gift, ShieldCheck, Inbox, Rocket, Flame, Sparkles, Crown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
@@ -8,9 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 import PageTransition from "@/components/app/PageTransition";
 
 const upgrades = [
-  { id: "hash_boost_pro", name: "Hash Boost Pro", desc: "2x mining speed for 24h", cost: 500, multiplier: 2, durationHours: 24, icon: Zap },
-  { id: "network_shield", name: "Network Shield", desc: "1.5x mining speed for 7 days", cost: 800, multiplier: 1.5, durationHours: 24 * 7, icon: ShieldCheck },
-  { id: "auto_harvest", name: "Auto-Harvest", desc: "3x mining speed for 12h", cost: 1200, multiplier: 3, durationHours: 12, icon: Cpu },
+  { id: "starter_spark",   name: "Starter Spark",    desc: "1.25× mining for 6h",   cost: 150,  multiplier: 1.25, durationHours: 6,      icon: Sparkles },
+  { id: "hash_boost_pro",  name: "Hash Boost Pro",   desc: "2× mining for 24h",     cost: 500,  multiplier: 2,    durationHours: 24,     icon: Zap },
+  { id: "auto_harvest",    name: "Auto-Harvest",     desc: "3× mining for 12h",     cost: 1200, multiplier: 3,    durationHours: 12,     icon: Cpu },
+  { id: "network_shield",  name: "Network Shield",   desc: "1.5× mining for 7 days",cost: 800,  multiplier: 1.5,  durationHours: 24 * 7, icon: ShieldCheck },
+  { id: "solar_surge",     name: "Solar Surge",      desc: "2.5× mining for 48h",   cost: 1800, multiplier: 2.5,  durationHours: 48,     icon: Flame },
+  { id: "quantum_rig",     name: "Quantum Rig",      desc: "4× mining for 24h",     cost: 3000, multiplier: 4,    durationHours: 24,     icon: Rocket },
+  { id: "titan_farm",      name: "Titan Farm",       desc: "3× mining for 14 days", cost: 6500, multiplier: 3,    durationHours: 24 * 14, icon: Crown },
 ];
 
 const MiningPage = () => {

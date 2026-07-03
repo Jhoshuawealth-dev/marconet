@@ -1,4 +1,4 @@
-import { Shield, Vote, Award, ChevronRight, User, Lock, Sprout, LogOut, ShieldCheck } from "lucide-react";
+import { Shield, Vote, Award, ChevronRight, User, Lock, Sprout, LogOut, ShieldCheck, Gift } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
@@ -16,6 +16,7 @@ const settingsItems = [
   { icon: User, label: "Personal Information", to: "/profile/personal" },
   { icon: Lock, label: "Security & 2FA", to: "/profile/security" },
   { icon: Sprout, label: "Farm Assets", to: "/profile/farms" },
+  { icon: Gift, label: "Refer & Earn", to: "/referrals" },
   { icon: Shield, label: "Identity Verification", to: "/verification" },
 ];
 
