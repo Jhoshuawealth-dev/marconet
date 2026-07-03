@@ -336,6 +336,9 @@ export type Database = {
           id: string
           ndc_balance: number
           phone: string | null
+          referral_bonus_claimed: boolean
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
           user_id: string
         }
@@ -346,6 +349,9 @@ export type Database = {
           id?: string
           ndc_balance?: number
           phone?: string | null
+          referral_bonus_claimed?: boolean
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id: string
         }
@@ -356,8 +362,38 @@ export type Database = {
           id?: string
           ndc_balance?: number
           phone?: string | null
+          referral_bonus_claimed?: boolean
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          bonus_amount: number
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -456,6 +492,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_referral_code: { Args: { _code: string }; Returns: Json }
       claim_matured_stake: { Args: { _stake_id: string }; Returns: Json }
       get_ad_for_delivery: {
         Args: never
