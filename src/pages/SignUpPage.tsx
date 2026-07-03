@@ -171,6 +171,15 @@ const SignUpPage = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="ref" className="text-[13px] font-semibold text-foreground flex items-center gap-1.5">
+                  <Gift className="h-3.5 w-3.5 text-accent" /> Referral code <span className="text-muted-foreground font-normal">(optional)</span>
+                </Label>
+                <Input id="ref" placeholder="MN123ABC" value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                  className="h-12 rounded-2xl bg-muted/50 border-border/60 text-[14px] focus:bg-card font-mono uppercase" />
+                {referralCode && <p className="text-[10px] text-accent font-semibold">You'll get 100 NDC bonus 🎁</p>}
+              </div>
+
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 By creating an account, you agree to our{" "}
                 <Link to="/terms" className="text-primary font-medium">Terms of Service</Link>{" "}and{" "}
