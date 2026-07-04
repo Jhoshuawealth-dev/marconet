@@ -306,18 +306,17 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   const enrollCourse = useCallback((courseId: string): boolean => {
     if (enrolledCourses.includes(courseId)) return true;
     if (balance < 200) return false;
-    setBalance(b => {
-      const nb = b - 200;
-      updateBalance(nb);
-      return nb;
+    if (!userId) return false;
+    // Server-side atomic enrollment: validates balance and prevents duplicates.
+    supabase.rpc("enroll_course" as any, { _course_id: courseId }).then(({ data, error }) => {
+      if (error) { console.error("enroll_course failed:", error); return; }
+      const result = data as any;
+      if (!result?.ok) { console.error("enroll_course:", result?.error); return; }
+      if (typeof result.balance === "number") setBalance(result.balance);
+      setEnrolledCourses(prev => prev.includes(courseId) ? prev : [...prev, courseId]);
     });
-    setEnrolledCourses(prev => [...prev, courseId]);
-    insertTransaction(200, "Course Enrollment", "Enrolled in course", "spend");
-    if (userId) {
-      supabase.from("enrolled_courses").insert({ user_id: userId, course_id: courseId });
-    }
     return true;
-  }, [balance, enrolledCourses, userId, updateBalance, insertTransaction]);
+  }, [balance, enrolledCourses, userId]);
 
   const likePost = useCallback((postId: string): boolean => {
     if (likesUsedToday.length >= 2 && !likesUsedToday.includes(postId)) return false;
