@@ -494,6 +494,17 @@ export type Database = {
     Functions: {
       apply_referral_code: { Args: { _code: string }; Returns: Json }
       claim_matured_stake: { Args: { _stake_id: string }; Returns: Json }
+      create_stake: {
+        Args: {
+          _amount: number
+          _duration_months?: number
+          _project_id: string
+          _project_name?: string
+          _roi_percent?: number
+        }
+        Returns: Json
+      }
+      enroll_course: { Args: { _course_id: string }; Returns: Json }
       get_ad_for_delivery: {
         Args: never
         Returns: {

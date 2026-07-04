@@ -306,18 +306,17 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   const enrollCourse = useCallback((courseId: string): boolean => {
     if (enrolledCourses.includes(courseId)) return true;
     if (balance < 200) return false;
-    setBalance(b => {
-      const nb = b - 200;
-      updateBalance(nb);
-      return nb;
+    if (!userId) return false;
+    // Server-side atomic enrollment: validates balance and prevents duplicates.
+    supabase.rpc("enroll_course" as any, { _course_id: courseId }).then(({ data, error }) => {
+      if (error) { console.error("enroll_course failed:", error); return; }
+      const result = data as any;
+      if (!result?.ok) { console.error("enroll_course:", result?.error); return; }
+      if (typeof result.balance === "number") setBalance(result.balance);
+      setEnrolledCourses(prev => prev.includes(courseId) ? prev : [...prev, courseId]);
     });
-    setEnrolledCourses(prev => [...prev, courseId]);
-    insertTransaction(200, "Course Enrollment", "Enrolled in course", "spend");
-    if (userId) {
-      supabase.from("enrolled_courses").insert({ user_id: userId, course_id: courseId });
-    }
     return true;
-  }, [balance, enrolledCourses, userId, updateBalance, insertTransaction]);
+  }, [balance, enrolledCourses, userId]);
 
   const likePost = useCallback((postId: string): boolean => {
     if (likesUsedToday.length >= 2 && !likesUsedToday.includes(postId)) return false;
@@ -499,27 +498,23 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   const stakeProject = useCallback((projectId: string, amount: number, opts?: { projectName?: string; roiPercent?: number; durationMonths?: number }): boolean => {
     if (balance < amount) return false;
     if (!userId) return false;
-    setBalance(b => {
-      const nb = b - amount;
-      updateBalance(nb);
-      return nb;
+    // Server-side atomic stake creation: validates balance, clamps ROI/duration.
+    supabase.rpc("create_stake" as any, {
+      _project_id: projectId,
+      _amount: amount,
+      _project_name: opts?.projectName ?? null,
+      _roi_percent: opts?.roiPercent ?? 15,
+      _duration_months: opts?.durationMonths ?? 6,
+    }).then(({ data, error }) => {
+      if (error) { console.error("create_stake failed:", error); return; }
+      const result = data as any;
+      if (!result?.ok) { console.error("create_stake:", result?.error); return; }
+      if (typeof result.balance === "number") setBalance(result.balance);
+      refreshStakes();
     });
-    const months = opts?.durationMonths ?? 6;
-    const matured = new Date();
-    matured.setMonth(matured.getMonth() + months);
-    supabase.from("staked_projects").insert({
-      user_id: userId,
-      project_id: projectId,
-      amount,
-      project_name: opts?.projectName ?? null,
-      roi_percent: opts?.roiPercent ?? 15,
-      matured_at: matured.toISOString(),
-      status: "active",
-    } as any).then(() => refreshStakes());
     setStakedProjects(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + amount }));
-    insertTransaction(amount, "Stake Investment", `Staked in ${opts?.projectName || "project"}`, "spend");
     return true;
-  }, [balance, userId, updateBalance, insertTransaction, refreshStakes]);
+  }, [balance, userId, refreshStakes]);
 
   const claimStake = useCallback(async (stakeId: string) => {
     const { data, error } = await supabase.rpc("claim_matured_stake" as any, { _stake_id: stakeId });
