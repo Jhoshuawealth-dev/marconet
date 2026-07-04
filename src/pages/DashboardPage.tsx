@@ -1,4 +1,5 @@
-import { Bell, TrendingUp, ArrowUpRight, Zap, Leaf, Wallet, Users, BookOpen, Megaphone, Shield, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { Bell, TrendingUp, ArrowUpRight, Zap, Leaf, Wallet, Users, BookOpen, Megaphone, Shield, BarChart3, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/app/BottomNav";
@@ -8,6 +9,7 @@ import { useNdc, NDC_RATES } from "@/contexts/NdcContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PageTransition from "@/components/app/PageTransition";
 import AdSlot from "@/components/app/AdSlot";
+import GlobalSearch from "@/components/app/GlobalSearch";
 
 const quickLinks = [
   { label: "Mining", icon: Zap, to: "/mining", gradient: "gradient-accent" },
@@ -26,6 +28,7 @@ const moreLinks = [
 const DashboardPage = () => {
   const { balance, monthlyHarvests, harvestAction, transactions } = useNdc();
   const { user } = useAuth();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Farmer";
   const initials = displayName.slice(0, 2).toUpperCase();
@@ -70,13 +73,25 @@ const DashboardPage = () => {
                 <p className="font-display font-bold text-foreground text-[15px]">{displayName}</p>
               </div>
             </div>
-            <Link to="/notifications" className="relative w-11 h-11 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-premium transition-transform active:scale-95">
-              <Bell className="h-[18px] w-[18px] text-muted-foreground" />
-              {transactions.length > 0 && (
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card" />
-              )}
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSearchOpen(true)}
+                aria-label="Search"
+                className="w-11 h-11 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-premium transition-transform active:scale-95"
+              >
+                <Search className="h-[18px] w-[18px] text-muted-foreground" />
+              </button>
+              <Link to="/notifications" className="relative w-11 h-11 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-premium transition-transform active:scale-95">
+                <Bell className="h-[18px] w-[18px] text-muted-foreground" />
+                {transactions.length > 0 && (
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card" />
+                )}
+              </Link>
+            </div>
           </div>
+
+          <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+
 
           {/* Balance Card */}
           <Card className="gradient-primary text-primary-foreground border-0 shadow-elevated overflow-hidden relative rounded-3xl">
