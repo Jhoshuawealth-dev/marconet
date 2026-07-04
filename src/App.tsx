@@ -57,6 +57,7 @@ import AdminAnnouncementsPage from "./pages/admin/AdminAnnouncementsPage";
 import AdminVerificationPage from "./pages/admin/AdminVerificationPage";
 import AdminRequestAccessPage from "./pages/AdminRequestAccessPage";
 import AdminRoute from "@/components/admin/AdminRoute";
+import InstallPrompt from "@/components/app/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -141,6 +142,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <AnimatedRoutes />
+            <InstallPrompt />
           </NdcProvider>
         </AuthProvider>
       </BrowserRouter>
