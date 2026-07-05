@@ -122,7 +122,7 @@ const VerificationPage = () => {
     const status = existingStatus || "pending";
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
+        <div className="app-container w-full flex-1 flex flex-col">
           <div className="px-4 pt-4">
             <div className="flex items-center gap-3">
               <button onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5 text-foreground" /></button>
@@ -187,7 +187,7 @@ const VerificationPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
+      <div className="app-container w-full flex-1 flex flex-col">
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center gap-3 mb-3">
             <button onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>

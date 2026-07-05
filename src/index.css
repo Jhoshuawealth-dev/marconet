@@ -113,6 +113,21 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  /* Responsive app container: 430px mobile-first, widens on tablet/desktop */
+  .app-container {
+    width: 100%;
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 768px) {
+    .app-container { max-width: 720px; }
+  }
+  @media (min-width: 1024px) {
+    .app-container { max-width: 1120px; }
+  }
+
+
   .glass-card {
     @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }

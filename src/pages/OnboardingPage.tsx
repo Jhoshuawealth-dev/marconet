@@ -38,7 +38,7 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col max-w-md mx-auto relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col app-container relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/[0.03] blur-3xl" />
       <div className="absolute bottom-32 left-0 w-48 h-48 rounded-full bg-accent/[0.05] blur-3xl" />

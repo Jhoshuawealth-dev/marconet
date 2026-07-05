@@ -51,7 +51,7 @@ const EducationPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-display font-extrabold text-foreground">Education Hub</h1>
             <span className="text-[11px] font-semibold text-primary text-metric">{balance.toLocaleString()} NDC</span>
@@ -96,7 +96,7 @@ const EducationPage = () => {
           {/* Recommended */}
           <div>
             <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Recommended for You</h2>
-            <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {filteredCourses.map((r) => {
                 const enrolled = enrolledCourses.includes(r.id);
                 return (

@@ -61,7 +61,7 @@ const DashboardPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

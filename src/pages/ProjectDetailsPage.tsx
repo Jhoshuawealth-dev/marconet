@@ -28,7 +28,7 @@ const ProjectDetailsPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <div className="max-w-md mx-auto">
+      <div className="app-container">
         <div className="bg-primary text-primary-foreground p-5 pb-8 relative">
           <button onClick={() => navigate(-1)} className="mb-4"><ArrowLeft className="h-5 w-5" /></button>
           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/20 text-accent uppercase">{project.risk} Risk</span>

@@ -115,7 +115,7 @@ const CampaignDetailPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-20">
-        <div className="max-w-md mx-auto px-4 pt-6 space-y-5">
+        <div className="app-container px-4 pt-6 space-y-5">
           <div className="flex items-center gap-3">
             <Link to="/ads"><ArrowLeft className="h-5 w-5 text-foreground" /></Link>
             <h1 className="text-lg font-extrabold text-foreground flex-1">{campaign.name}</h1>

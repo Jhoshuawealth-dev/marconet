@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import SideNav from "@/components/app/SideNav";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -16,7 +17,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/signin" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <SideNav />
+      <div className="lg:pl-[260px]">{children}</div>
+    </>
+  );
 };
 
 export default ProtectedRoute;
+

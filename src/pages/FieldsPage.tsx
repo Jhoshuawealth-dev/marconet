@@ -29,7 +29,7 @@ const FieldsPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-display font-extrabold text-foreground">My Fields</h1>
             <span className="text-[11px] text-muted-foreground font-medium">{active.length} active</span>
@@ -56,7 +56,7 @@ const FieldsPage = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {stakeRecords.map((s) => {
                 const isMatured = s.status === "active" && s.matured_at && new Date(s.matured_at) <= new Date();
                 const payout = s.amount + Math.round(s.amount * s.roi_percent / 100);

@@ -88,7 +88,7 @@ const InstallPrompt = () => {
 
   if (mode === "ios") {
     return (
-      <div className="fixed bottom-[84px] left-4 right-4 z-[60] max-w-md mx-auto">
+      <div className="fixed bottom-[84px] left-4 right-4 z-[60] app-container">
         <div className="rounded-2xl bg-card border border-border/60 shadow-elevated p-4 backdrop-blur-xl">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
@@ -122,7 +122,7 @@ const InstallPrompt = () => {
   }
 
   return (
-    <div className="fixed bottom-[84px] left-4 right-4 z-[60] max-w-md mx-auto">
+    <div className="fixed bottom-[84px] left-4 right-4 z-[60] app-container">
       <div className="rounded-2xl bg-card border border-border/60 shadow-elevated p-4 flex items-center gap-3 backdrop-blur-xl">
         <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
           <Download className="h-5 w-5 text-primary-foreground" />

@@ -71,7 +71,7 @@ const ReferralsPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           <div className="flex items-center gap-3">
             <Link to="/profile"><ArrowLeft className="h-5 w-5 text-foreground" /></Link>
             <h1 className="text-xl font-display font-extrabold text-foreground">Refer & Earn</h1>

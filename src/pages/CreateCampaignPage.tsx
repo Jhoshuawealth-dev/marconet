@@ -93,7 +93,7 @@ const CreateCampaignPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
+      <div className="app-container w-full flex-1 flex flex-col">
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center justify-between mb-2">
             <button onClick={back}><ArrowLeft className="h-5 w-5 text-foreground" /></button>

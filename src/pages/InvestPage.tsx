@@ -31,7 +31,7 @@ const InvestPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           <h1 className="text-xl font-display font-extrabold text-foreground">Invest</h1>
 
           <div className="flex gap-2">
@@ -63,7 +63,7 @@ const InvestPage = () => {
           </Card>
 
           {/* Projects List */}
-          <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {filtered.length === 0 && (
               <p className="text-[13px] text-muted-foreground text-center py-8">No projects match this filter.</p>
             )}

@@ -44,7 +44,7 @@ const MiningPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-display font-extrabold text-foreground">AI Farming</h1>
             <span className={`text-[11px] font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isMining ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
