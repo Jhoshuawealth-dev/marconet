@@ -63,7 +63,7 @@ const InvestPage = () => {
           </Card>
 
           {/* Projects List */}
-          <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {filtered.length === 0 && (
               <p className="text-[13px] text-muted-foreground text-center py-8">No projects match this filter.</p>
             )}

@@ -56,7 +56,7 @@ const FieldsPage = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {stakeRecords.map((s) => {
                 const isMatured = s.status === "active" && s.matured_at && new Date(s.matured_at) <= new Date();
                 const payout = s.amount + Math.round(s.amount * s.roi_percent / 100);

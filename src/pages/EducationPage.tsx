@@ -96,7 +96,7 @@ const EducationPage = () => {
           {/* Recommended */}
           <div>
             <h2 className="font-display font-bold text-foreground text-[15px] mb-3">Recommended for You</h2>
-            <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {filteredCourses.map((r) => {
                 const enrolled = enrolledCourses.includes(r.id);
                 return (

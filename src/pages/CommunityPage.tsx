@@ -143,7 +143,7 @@ const CommunityPage = () => {
               ))}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {communityPosts.map((d) => (
                 <Card key={d.id} className="border border-border/60 shadow-premium rounded-2xl">
                   <CardContent className="p-4 space-y-3">
