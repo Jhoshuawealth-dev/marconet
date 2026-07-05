@@ -1,93 +1,76 @@
-## Implementation Plan: 5 Feature Upgrades
+# Make Marco Net responsive on tablet + desktop
 
-### 1. Real-time Updates for Admin Stakes, Education, Users Pages
+Today every app page is locked to a 430px centered column, even on wide screens. The landing pages already scale. Goal: keep the current mobile feel identical, and unlock proper tablet (≥768px) and desktop (≥1024px) layouts everywhere else.
 
-Add Supabase realtime channel subscriptions (same pattern as AdminDashboardPage) to these three pages so data refreshes automatically when changes occur.
+## Approach
 
-**Files to edit:**
+Introduce one shared responsive shell instead of touching each page's outer wrapper by hand, then upgrade the heavy pages to real multi-column layouts.
 
-- `src/pages/admin/AdminUsersPage.tsx` — subscribe to `profiles` table changes
-- `src/pages/admin/AdminStakesPage.tsx` — subscribe to `staked_projects` table changes
-- `src/pages/admin/AdminEducationPage.tsx` — subscribe to `enrolled_courses` table changes
+### 1. Responsive app shell
 
-Each page gets a channel subscription in useEffect with cleanup on unmount, re-fetching data on any insert/update/delete.
+Create `src/components/app/AppShell.tsx`:
 
----
+- Mobile (`<md`): unchanged — 430px centered column, bottom nav visible.
+- Tablet (`md` – `lg`): 720px content column, more breathing room, bottom nav still visible.
+- Desktop (`≥lg`): left sidebar nav (Dashboard, Mining, Wallet, Invest, Community, Education, Ads, Profile) + a 1120px max content area; bottom nav hidden.
 
-### 2. Real Notification System with Database Storage
+Update `BottomNav` to hide at `lg:` and add a matching `SideNav` used only at `lg:`.
 
-Create a `notifications` table and replace the current transaction-only notifications with a proper system that tracks announcements, post approvals, stake events, and more.
+Wrap every protected/admin page in `AppShell` via `ProtectedRoute` / `AdminRoute` (single edit, propagates everywhere) and drop the per-page `max-w-[430px]` wrapper by rewriting the shared container class.
 
-**Database migration:**
+### 2. Grid upgrades on the heavy pages
 
-- Create `notifications` table: `id`, `user_id`, `title`, `body`, `type` (announcement, post_approval, stake_maturity, system), `read` (boolean, default false), `created_at`
-- RLS: users can read/update own notifications; admins can insert for any user
-- Enable realtime on the table
-
-**Files to create/edit:**
-
-- `src/hooks/useNotifications.ts` — hook to fetch, mark-read, and subscribe to realtime notifications
-- `src/pages/NotificationsPage.tsx` — rewrite to pull from database instead of NdcContext transactions
-- `src/pages/admin/AdminAnnouncementsPage.tsx` — when publishing an announcement, insert a notification row per user (via a database function to batch-insert)
-- Create DB function `notify_all_users` that inserts a notification for every user when an announcement is published
-
----
-
-### 3. Profile Photo Upload
-
-Create a storage bucket and let users upload an avatar image from their profile.
-
-**Database migration:**
-
-- Create `avatars` storage bucket (public)
-- RLS policies: authenticated users can upload/update/delete their own files (path pattern: `{user_id}/*`)
-
-**Files to edit:**
-
-- `src/pages/ProfilePage.tsx` — add camera icon overlay on avatar circle; on click, open file picker, upload to storage, update `profiles.avatar_url`
-- `src/pages/PersonalInfoPage.tsx` — show avatar with upload option
-- Any component showing user avatar — fall back to initials if no `avatar_url`
-
----
-
-### 4. Real KYC Verification Flow
-
-Make the verification page actually upload documents, persist status, and let admins review.
-
-**Database migration:**
-
-- Create `verification_requests` table: `id`, `user_id`, `id_type`, `document_url`, `selfie_url`, `status` (pending/approved/rejected), `reviewed_by`, `reviewed_at`, `created_at`
-- RLS: users can insert/view own; admins can view all and update status
-- Create `kyc-documents` storage bucket (private) with user-scoped RLS
-
-**Files to edit:**
-
-- `src/pages/VerificationPage.tsx` — replace simulated flow with real file upload (document photo + selfie) to storage, then insert `verification_requests` row
-- `src/pages/admin/AdminUsersPage.tsx` or new `AdminVerificationPage.tsx` — list pending verification requests, view documents, approve/reject
-- `src/components/admin/AdminLayout.tsx` — add KYC/Verification nav item
-- `src/App.tsx` — add route for admin verification page
-- `src/pages/ProfilePage.tsx` — show verification badge based on DB status
-
----
-
----
-
-### Technical Summary
+These pages get true multi-column layouts at `md:` and `lg:` (single column stays on mobile):
 
 
-| Feature          | DB Changes                              | Storage                | Edge Functions  | Files Changed |
-| ---------------- | --------------------------------------- | ---------------------- | --------------- | ------------- |
-| Admin realtime   | Enable realtime on 3 tables             | -                      | -               | 3             |
-| Notifications    | New `notifications` table + DB function | -                      | -               | 3-4           |
-| Profile photo    | `avatars` bucket                        | Yes                    | -               | 2-3           |
-| KYC verification | New `verification_requests` table       | `kyc-documents` bucket | -               | 4-5           |
-| Paystack         | New `payment_transactions` table        | -                      | 2 new functions | 1-2           |
+| Page                                                                                                                   | md (2 col)                                      | lg (3+ col)                                                          |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
+| Dashboard                                                                                                              | balance + chart side-by-side, quick actions row | + activity + announcements column                                    |
+| Wallet                                                                                                                 | balance card + transactions                     | + fund/transfer side panel                                           |
+| Invest / Fields / Market                                                                                               | 2-up project cards                              | 3-up cards, filters as sidebar                                       |
+| Community                                                                                                              | 2-up post grid                                  | 3-up feed + right rail (trending)                                    |
+| Education                                                                                                              | 2-up course cards                               | 3-up + progress sidebar                                              |
+| Ads Manager, Campaign Detail                                                                                           | metrics 2-up, table wider                       | metrics 4-up, chart full width                                       |
+| Notifications, Referrals, Farm Assets, Profile subpages                                                                | 2-up cards where lists                          | same, wider table                                                    |
+| Admin (Users, Transactions, Moderation, Stakes, Verification, Requests, Analytics, Announcements, Education, Settings) | full-width tables, side filter panel            | proper admin dashboard: sidebar + wide tables + inline detail drawer |
 
 
-### Execution Order
+Charts (`recharts`) get `ResponsiveContainer` widths already; only their card grids change.
 
-1. Admin realtime (quick, no dependencies)
-2. Notifications system (enables announcements to work end-to-end)
-3. Profile photo upload (storage bucket + UI)
-4. KYC verification (storage + new table + admin page)
-5. Paystack integration (requires API key from you first)
+### 3. Landing pages
+
+Already responsive — quick pass to fix any remaining fixed widths in `HeroSection`, `FeaturedProjects`, `Footer`, `WhyChooseUs`.
+
+### 4. Global polish
+
+- Replace `max-w-[430px] mx-auto` occurrences with the shell (search-replace across ~30 pages).
+- Bump tap targets and font sizes only where they get too small on wide screens.
+- Modals/sheets: switch bottom sheets to centered dialogs at `md:` and up.
+- Header/toolbars on desktop: move the mobile top-bar actions into the side nav.
+
+## Non-goals
+
+- No visual redesign — same earth-tone palette, same typography, same components. Only layout scales.
+- No new features.
+- No changes to business logic, RPCs, or Supabase schema.
+
+## Rollout order
+
+1. Shell + SideNav + BottomNav hide-at-lg + wire through `ProtectedRoute`/`AdminRoute`.
+2. Dashboard, Wallet, Invest, Community, Education, Profile (highest traffic).
+3. Ads, Notifications, Referrals, Farm Assets, remaining user pages.
+4. All admin pages.
+5. Landing polish pass.
+6. Manual check at 320 / 390 / 768 / 1024 / 1440 widths.
+
+## Technical notes
+
+- Update `mem://index.md` Core: the 430px lock now applies only to mobile breakpoint.
+- Tailwind breakpoints stay default (`sm 640 / md 768 / lg 1024 / xl 1280`).
+- Container utility added in `tailwind.config.ts` or as a component class in `index.css`, e.g. `.app-container { @apply w-full max-w-[430px] mx-auto md:max-w-3xl lg:max-w-6xl px-4 md:px-6; }`.
+- Side nav reuses `NavLink` styling; active state via `useLocation`.
+- `AppShell` accepts `variant="user" | "admin"` so admin gets the admin nav items and the wider table container.
+- Framer-motion page transitions kept; wrap the main content, not the shell.  
+  
+5.  Also add image (related images on the landing page and also on the entire website) images that is necceary and where necceasry
+- &nbsp;
