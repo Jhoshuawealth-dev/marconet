@@ -13,8 +13,9 @@ const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/50 safe-area-pb">
-      <div className="max-w-md mx-auto flex items-center justify-around h-[68px]">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/50 safe-area-pb">
+      <div className="max-w-md md:max-w-xl mx-auto flex items-center justify-around h-[68px]">
+
         {tabs.map((t) => {
           const active = location.pathname === t.to;
           return (
