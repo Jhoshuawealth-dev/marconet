@@ -39,7 +39,7 @@ const TransferPage = () => {
     return (
       <PageTransition>
         <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="max-w-md mx-auto px-5 text-center space-y-5">
+          <div className="app-container px-5 text-center space-y-5">
             <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto">
               <CheckCircle className="h-8 w-8 text-primary" />
             </div>
@@ -63,7 +63,7 @@ const TransferPage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-muted transition-colors"><ArrowLeft className="h-5 w-5 text-foreground" /></button>
             <h1 className="text-xl font-display font-extrabold text-foreground">Transfer NDC</h1>

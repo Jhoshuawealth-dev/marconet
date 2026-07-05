@@ -34,7 +34,7 @@ const ForgotPasswordPage = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background flex flex-col max-w-md mx-auto relative overflow-hidden">
+      <div className="min-h-screen bg-background flex flex-col app-container relative overflow-hidden">
         <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-primary/[0.03] blur-3xl" />
         <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-accent/[0.04] blur-3xl" />
 

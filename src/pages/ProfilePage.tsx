@@ -114,7 +114,7 @@ const ProfilePage = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background pb-24">
-        <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="app-container px-5 pt-6 space-y-6">
           {/* Profile Header */}
           <div className="text-center space-y-3 flex flex-col items-center">
             <AvatarUploader
