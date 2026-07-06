@@ -1,4 +1,5 @@
 import { Users, Coins, Radio, ShieldCheck } from "lucide-react";
+import statsBg from "@/assets/stats-bg.jpg";
 
 const stats = [
   { icon: Users, value: "12,400+", label: "Lifetime Farmers" },
@@ -8,8 +9,16 @@ const stats = [
 ];
 
 const StatsBar = () => (
-  <section className="py-16 bg-primary text-primary-foreground">
-    <div className="container max-w-6xl mx-auto">
+  <section className="relative py-16 bg-primary text-primary-foreground overflow-hidden">
+    <img
+      src={statsBg}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay"
+    />
+    <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/70" />
+    <div className="container max-w-6xl mx-auto relative z-10">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {stats.map((s) => (
           <div key={s.label} className="space-y-2">
