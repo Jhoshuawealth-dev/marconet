@@ -1,4 +1,5 @@
 import { UserPlus, Sprout, Layers, Wallet } from "lucide-react";
+import howItWorksImg from "@/assets/how-it-works.jpg";
 
 const steps = [
   { icon: UserPlus, title: "Create Account", desc: "Sign up in seconds and join the farming community." },
@@ -15,21 +16,37 @@ const HowItWorks = () => (
         <p className="mt-3 text-muted-foreground">Four simple steps to start earning.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {steps.map((s, i) => (
-          <div key={s.title} className="flex flex-col items-center text-center space-y-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
-                <s.icon className="h-7 w-7 text-primary-foreground" />
+      <div className="grid lg:grid-cols-5 gap-10 items-center">
+        <div className="lg:col-span-2 relative">
+          <div className="absolute -inset-3 bg-primary/10 rounded-3xl blur-2xl" />
+          <img
+            src={howItWorksImg}
+            alt="Farmer using a smartphone in a green field"
+            loading="lazy"
+            width={1024}
+            height={768}
+            className="relative rounded-3xl shadow-xl object-cover w-full h-[340px]"
+          />
+        </div>
+
+        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {steps.map((s, i) => (
+            <div key={s.title} className="flex items-start gap-4">
+              <div className="relative shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+                  <s.icon className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-accent text-accent-foreground text-[11px] font-extrabold flex items-center justify-center shadow">
+                  {i + 1}
+                </span>
               </div>
-              <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-accent text-accent-foreground text-xs font-extrabold flex items-center justify-center shadow">
-                {i + 1}
-              </span>
+              <div>
+                <h3 className="font-bold text-foreground text-base">{s.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mt-1">{s.desc}</p>
+              </div>
             </div>
-            <h3 className="font-bold text-foreground text-lg">{s.title}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{s.desc}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   </section>

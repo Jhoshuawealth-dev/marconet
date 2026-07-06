@@ -1,10 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Quote } from "lucide-react";
+import avatarAdebayo from "@/assets/avatar-adebayo.jpg";
+import avatarChioma from "@/assets/avatar-chioma.jpg";
+import avatarEmeka from "@/assets/avatar-emeka.jpg";
 
 const testimonials = [
-  { name: "Adebayo O.", role: "Digital Farmer", quote: "I started farming data 3 months ago and my returns have been incredibly consistent. This platform just works." },
-  { name: "Chioma N.", role: "Investor", quote: "The transparency is refreshing. I can see every yield stream and exactly how my NDC is growing." },
-  { name: "Emeka J.", role: "Community Leader", quote: "Marco Net brought real people together. The governance system gives us a voice in every decision." },
+  { name: "Adebayo O.", role: "Digital Farmer", avatar: avatarAdebayo, quote: "I started farming data 3 months ago and my returns have been incredibly consistent. This platform just works." },
+  { name: "Chioma N.", role: "Investor", avatar: avatarChioma, quote: "The transparency is refreshing. I can see every yield stream and exactly how my NDC is growing." },
+  { name: "Emeka J.", role: "Community Leader", avatar: avatarEmeka, quote: "Marco Net brought real people together. The governance system gives us a voice in every decision." },
 ];
 
 const Testimonials = () => (
@@ -21,9 +24,14 @@ const Testimonials = () => (
               <Quote className="h-6 w-6 text-accent" />
               <p className="text-sm text-muted-foreground leading-relaxed italic">"{t.quote}"</p>
               <div className="flex items-center gap-3 pt-2">
-                <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-sm">
-                  {t.name[0]}
-                </div>
+                <img
+                  src={t.avatar}
+                  alt={`${t.name} portrait`}
+                  loading="lazy"
+                  width={512}
+                  height={512}
+                  className="w-11 h-11 rounded-full object-cover border-2 border-accent/30"
+                />
                 <div>
                   <p className="text-sm font-bold text-foreground">{t.name}</p>
                   <p className="text-xs text-muted-foreground">{t.role}</p>

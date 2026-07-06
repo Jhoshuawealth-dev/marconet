@@ -2,12 +2,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TrendingUp, Clock, Boxes } from "lucide-react";
+import cropSoy from "@/assets/crop-soy.jpg";
+import cropMaize from "@/assets/crop-maize.jpg";
+import cropCassava from "@/assets/crop-cassava.jpg";
+import cropRice from "@/assets/crop-rice.jpg";
 
 const projects = [
-  { name: "Green Valley Soy", roi: "18.5%", price: "₦2,500", units: 120, timeline: "6 months", status: "Active" },
-  { name: "Sunrise Maize Field", roi: "22.0%", price: "₦1,800", units: 200, timeline: "4 months", status: "Active" },
-  { name: "Cassava Digital Farm", roi: "15.2%", price: "₦3,000", units: 80, timeline: "8 months", status: "Filling" },
-  { name: "Rice Paddy Project", roi: "20.0%", price: "₦2,200", units: 150, timeline: "5 months", status: "Active" },
+  { name: "Green Valley Soy", roi: "18.5%", price: "₦2,500", units: 120, timeline: "6 months", status: "Active", image: cropSoy },
+  { name: "Sunrise Maize Field", roi: "22.0%", price: "₦1,800", units: 200, timeline: "4 months", status: "Active", image: cropMaize },
+  { name: "Cassava Digital Farm", roi: "15.2%", price: "₦3,000", units: 80, timeline: "8 months", status: "Filling", image: cropCassava },
+  { name: "Rice Paddy Project", roi: "20.0%", price: "₦2,200", units: 150, timeline: "5 months", status: "Active", image: cropRice },
 ];
 
 const FeaturedProjects = () => (
@@ -21,15 +25,22 @@ const FeaturedProjects = () => (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {projects.map((p) => (
           <Card key={p.name} className="border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-            {/* Color strip */}
-            <div className="h-2 bg-primary" />
+            {/* Project image */}
+            <div className="relative h-36 overflow-hidden">
+              <img
+                src={p.image}
+                alt={`${p.name} farm`}
+                loading="lazy"
+                width={768}
+                height={512}
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+              />
+              <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-background/90 backdrop-blur text-primary">
+                {p.status}
+              </span>
+            </div>
             <CardContent className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-foreground text-sm">{p.name}</h3>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                  {p.status}
-                </span>
-              </div>
+              <h3 className="font-bold text-foreground text-sm">{p.name}</h3>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex items-center gap-1.5 text-muted-foreground">

@@ -48,6 +48,12 @@ const AboutPage = () => {
             </div>
             <span className="text-xl font-display font-bold text-foreground">Marco Net Farming</span>
           </div>
+          <img
+            src="/src/assets/hero-farm.jpg"
+            alt="Aerial view of Marco Net digital farmlands"
+            loading="lazy"
+            className="w-full h-48 sm:h-64 object-cover rounded-2xl shadow-premium"
+          />
           <p className="text-[14px] text-muted-foreground leading-relaxed">
             Marco Net is a digital farming and investment platform built on a simple belief: the people who grow the food should share in the wealth it creates. We combine sustainable agriculture with modern technology so farmers, investors, and everyday communities can grow together — transparently and profitably.
           </p>
