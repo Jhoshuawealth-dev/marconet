@@ -2,6 +2,7 @@ import { ArrowLeft, Sprout, Users, Shield, Globe, Target, Heart, TrendingUp, Lea
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
+import heroFarm from "@/assets/hero-farm.jpg";
 
 const stats = [
   { icon: Users, title: "12,400+", desc: "Active farmers" },
@@ -48,6 +49,12 @@ const AboutPage = () => {
             </div>
             <span className="text-xl font-display font-bold text-foreground">Marco Net Farming</span>
           </div>
+          <img
+            src={heroFarm}
+            alt="Aerial view of Marco Net digital farmlands"
+            loading="lazy"
+            className="w-full h-48 sm:h-64 object-cover rounded-2xl shadow-premium"
+          />
           <p className="text-[14px] text-muted-foreground leading-relaxed">
             Marco Net is a digital farming and investment platform built on a simple belief: the people who grow the food should share in the wealth it creates. We combine sustainable agriculture with modern technology so farmers, investors, and everyday communities can grow together — transparently and profitably.
           </p>
