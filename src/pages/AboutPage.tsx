@@ -2,6 +2,7 @@ import { ArrowLeft, Sprout, Users, Shield, Globe, Target, Heart, TrendingUp, Lea
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
+import heroFarm from "@/assets/hero-farm.jpg";
 
 const stats = [
   { icon: Users, title: "12,400+", desc: "Active farmers" },
@@ -49,7 +50,7 @@ const AboutPage = () => {
             <span className="text-xl font-display font-bold text-foreground">Marco Net Farming</span>
           </div>
           <img
-            src="/src/assets/hero-farm.jpg"
+            src={heroFarm}
             alt="Aerial view of Marco Net digital farmlands"
             loading="lazy"
             className="w-full h-48 sm:h-64 object-cover rounded-2xl shadow-premium"
