@@ -1,9 +1,19 @@
 import { Sprout } from "lucide-react";
 import { Link } from "react-router-dom";
+import footerBg from "@/assets/footer-bg.jpg";
 
 const Footer = () => (
-  <footer className="py-12 bg-foreground text-background">
-    <div className="container max-w-6xl mx-auto">
+  <footer className="relative pt-12 pb-8 bg-foreground text-background overflow-hidden">
+    <img
+      src={footerBg}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      className="absolute inset-0 w-full h-full object-cover opacity-20"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/95 to-foreground/80" />
+
+    <div className="container max-w-6xl mx-auto relative z-10">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
