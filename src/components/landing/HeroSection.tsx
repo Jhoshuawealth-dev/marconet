@@ -56,16 +56,26 @@ const HeroSection = () => (
           </div>
         </div>
 
-        {/* Hero image */}
-        <div className="relative hidden lg:block">
+        {/* Hero images */}
+        <div className="relative">
           <div className="absolute -inset-4 bg-accent/20 rounded-3xl blur-2xl" />
-          <img
-            src={heroFarm}
-            alt="Aerial view of digital farmland at golden hour"
-            width={1280}
-            height={1024}
-            className="relative rounded-3xl shadow-2xl border-4 border-accent/20 object-cover w-full h-[420px]"
-          />
+          <div className="relative grid grid-cols-5 gap-3">
+            <img
+              src={heroFarm}
+              alt="Aerial view of digital farmland at golden hour"
+              width={1280}
+              height={1024}
+              className="col-span-3 rounded-3xl shadow-2xl border-4 border-accent/20 object-cover w-full h-[280px] md:h-[420px]"
+            />
+            <img
+              src={heroSecondary}
+              alt="Farmer checking crop analytics on a phone"
+              loading="lazy"
+              width={768}
+              height={1024}
+              className="col-span-2 rounded-3xl shadow-2xl border-4 border-accent/20 object-cover w-full h-[280px] md:h-[420px]"
+            />
+          </div>
         </div>
       </div>
     </div>
