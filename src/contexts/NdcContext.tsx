@@ -345,16 +345,24 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
   const commentPost = useCallback((postId: string, comment: string): boolean => {
     if (commentsUsedToday.length >= 2 && !commentsUsedToday.includes(postId)) return false;
     if (commentsUsedToday.includes(postId)) return false;
+    if (!userId) return false;
     setCommentsUsedToday(prev => [...prev, postId]);
     const authorName = "You";
+    const tempId = `tmp-${Date.now()}`;
+    const optimistic: CommunityComment = { id: tempId, user_id: userId, author: authorName, text: comment };
     setCommunityPosts(prev => prev.map(p =>
-      p.id === postId ? { ...p, comments: [...p.comments, { author: authorName, text: comment }] } : p
+      p.id === postId ? { ...p, comments: [...p.comments, optimistic] } : p
     ));
-    if (userId) {
-      supabase.from("community_comments").insert({
-        post_id: postId, user_id: userId, author_name: authorName, content: comment,
-      });
-    }
+    supabase.from("community_comments").insert({
+      post_id: postId, user_id: userId, author_name: authorName, content: comment,
+    }).select("id").then(({ data }) => {
+      const realId = data?.[0]?.id;
+      if (!realId) return;
+      setCommunityPosts(prev => prev.map(p => p.id === postId
+        ? { ...p, comments: p.comments.map(c => c.id === tempId ? { ...c, id: realId } : c) }
+        : p
+      ));
+    });
     earn(3, "Comment Reward", "Commented on a community post");
     return true;
   }, [commentsUsedToday, earn, userId]);
@@ -376,36 +384,36 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
 
   const createPost = useCallback((title: string, body: string): boolean => {
     if (dailyPosts >= 2) return false;
+    if (!userId) return false;
     const authorName = "You";
     const newPost: CommunityPost = {
-      id: `user-${Date.now()}`, author: authorName, avatar: "YO", topic: "Community",
+      id: `user-${Date.now()}`, user_id: userId, author: authorName, avatar: "YO", topic: "Community",
       title, body, likes: 0, comments: [], shares: 0,
       time: "Just now", status: "pending", postType: "text",
     };
     setCommunityPosts(prev => [newPost, ...prev]);
     setDailyPosts(p => p + 1);
-    if (userId) {
-      supabase.from("community_posts").insert({
-        user_id: userId, author_name: authorName, title, body,
-        topic: "Community", post_type: "text", status: "pending",
-      }).select("id").then(({ data }) => {
-        if (data && data.length > 0) {
-          setCommunityPosts(prev => prev.map(p =>
-            p.id === newPost.id ? { ...p, id: data[0].id } : p
-          ));
-        }
-      });
-    }
+    supabase.from("community_posts").insert({
+      user_id: userId, author_name: authorName, title, body,
+      topic: "Community", post_type: "text", status: "pending",
+    }).select("id").then(({ data }) => {
+      if (data && data.length > 0) {
+        setCommunityPosts(prev => prev.map(p =>
+          p.id === newPost.id ? { ...p, id: data[0].id } : p
+        ));
+      }
+    });
     return true;
   }, [dailyPosts, userId]);
 
   const createMediaPost = useCallback((type: "picture" | "video", title: string, body: string): boolean => {
     if (type === "video" && weeklyVideoPosts >= 1) return false;
     if (type === "picture" && weeklyPicturePosts >= 2) return false;
+    if (!userId) return false;
     const reward = type === "picture" ? 7 : 10;
     const authorName = "You";
     const newPost: CommunityPost = {
-      id: `user-${Date.now()}`, author: authorName, avatar: "YO", topic: "Farm Content",
+      id: `user-${Date.now()}`, user_id: userId, author: authorName, avatar: "YO", topic: "Farm Content",
       title, body, likes: 0, comments: [], shares: 0,
       time: "Just now", status: "pending", postType: type,
     };
@@ -413,25 +421,44 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
     if (type === "video") setWeeklyVideoPosts(p => p + 1);
     else setWeeklyPicturePosts(p => p + 1);
     earn(reward, `${type === "picture" ? "Picture" : "Video"} Upload Reward`, `Uploaded a ${type} post (+${reward} NDC)`);
-    if (userId) {
-      supabase.from("community_posts").insert({
-        user_id: userId, author_name: authorName, title, body,
-        topic: "Farm Content", post_type: type, status: "pending",
-      });
-    }
+    supabase.from("community_posts").insert({
+      user_id: userId, author_name: authorName, title, body,
+      topic: "Farm Content", post_type: type, status: "pending",
+    });
     return true;
   }, [weeklyVideoPosts, weeklyPicturePosts, earn, userId]);
 
-  const approvePost = useCallback((postId: string) => {
-    setCommunityPosts(prev => prev.map(p => {
-      if (p.id === postId && p.status === "pending") {
-        if (userId) supabase.from("community_posts").update({ status: "approved" }).eq("id", postId);
-        earn(200, "Post Approved", "Your community post was approved");
-        return { ...p, status: "approved" };
-      }
-      return p;
-    }));
-  }, [earn, userId]);
+  const approvePost = useCallback(async (postId: string): Promise<boolean> => {
+    const { error } = await supabase.from("community_posts").update({ status: "approved" }).eq("id", postId);
+    if (error) { console.error("approvePost:", error); return false; }
+    setCommunityPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "approved" } : p));
+    return true;
+  }, []);
+
+  const editPost = useCallback(async (postId: string, title: string, body: string): Promise<boolean> => {
+    const { error } = await supabase.from("community_posts").update({ title, body }).eq("id", postId);
+    if (error) { console.error("editPost:", error); return false; }
+    setCommunityPosts(prev => prev.map(p => p.id === postId ? { ...p, title, body } : p));
+    return true;
+  }, []);
+
+  const deletePost = useCallback(async (postId: string): Promise<boolean> => {
+    const { error } = await supabase.from("community_posts").delete().eq("id", postId);
+    if (error) { console.error("deletePost:", error); return false; }
+    setCommunityPosts(prev => prev.filter(p => p.id !== postId));
+    return true;
+  }, []);
+
+  const deleteComment = useCallback(async (postId: string, commentId: string): Promise<boolean> => {
+    const { error } = await supabase.from("community_comments").delete().eq("id", commentId);
+    if (error) { console.error("deleteComment:", error); return false; }
+    setCommunityPosts(prev => prev.map(p => p.id === postId
+      ? { ...p, comments: p.comments.filter(c => c.id !== commentId) }
+      : p
+    ));
+    return true;
+  }, []);
+
 
   const harvestAction = useCallback((): boolean => {
     if (monthlyHarvests >= 4) return false;
