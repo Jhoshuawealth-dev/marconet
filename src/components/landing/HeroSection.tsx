@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Sprout, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroFarm from "@/assets/hero-farm.jpg";
+import heroSecondary from "@/assets/hero-secondary.jpg";
 
 const HeroSection = () => (
   <section className="relative overflow-hidden bg-primary text-primary-foreground">
