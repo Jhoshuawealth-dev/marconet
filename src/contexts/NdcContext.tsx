@@ -75,7 +75,10 @@ interface NdcContextType {
   communityPosts: CommunityPost[];
   createPost: (title: string, body: string) => boolean;
   createMediaPost: (type: "picture" | "video", title: string, body: string) => boolean;
-  approvePost: (postId: string) => void;
+  approvePost: (postId: string) => Promise<boolean>;
+  editPost: (postId: string, title: string, body: string) => Promise<boolean>;
+  deletePost: (postId: string) => Promise<boolean>;
+  deleteComment: (postId: string, commentId: string) => Promise<boolean>;
   harvestAction: () => boolean;
   isMining: boolean;
   miningSession: number;
