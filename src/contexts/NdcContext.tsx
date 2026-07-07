@@ -18,14 +18,22 @@ interface Transaction {
   date: string;
 }
 
+export interface CommunityComment {
+  id: string;
+  user_id: string;
+  author: string;
+  text: string;
+}
+
 export interface CommunityPost {
   id: string;
+  user_id: string;
   author: string;
   avatar: string;
   title: string;
   body: string;
   likes: number;
-  comments: { author: string; text: string }[];
+  comments: CommunityComment[];
   shares: number;
   time: string;
   status: "pending" | "approved";
