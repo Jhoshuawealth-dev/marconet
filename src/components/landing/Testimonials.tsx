@@ -10,9 +10,19 @@ const testimonials = [
   { name: "Emeka J.", role: "Community Leader", avatar: avatarEmeka, quote: "Marco Net brought real people together. The governance system gives us a voice in every decision." },
 ];
 
+import testimonialsBg from "@/assets/testimonials-bg.jpg";
+
 const Testimonials = () => (
-  <section className="py-20 bg-muted/50">
-    <div className="container max-w-6xl mx-auto">
+  <section className="relative py-20 bg-muted/50 overflow-hidden">
+    <img
+      src={testimonialsBg}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      className="absolute inset-0 w-full h-full object-cover opacity-15"
+    />
+    <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-muted/70 to-muted/50" />
+    <div className="container max-w-6xl mx-auto relative z-10">
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">What Our Farmers Say</h2>
       </div>
