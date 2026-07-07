@@ -221,14 +221,15 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
             .in("post_id", postIds.length > 0 ? postIds : ["__none__"])
             .order("created_at", { ascending: true });
 
-          const commentsByPost: Record<string, { author: string; text: string }[]> = {};
+          const commentsByPost: Record<string, CommunityComment[]> = {};
           comments?.forEach(c => {
             if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-            commentsByPost[c.post_id].push({ author: c.author_name, text: c.content });
+            commentsByPost[c.post_id].push({ id: c.id, user_id: c.user_id, author: c.author_name, text: c.content });
           });
 
           setCommunityPosts(posts.map(p => ({
             id: p.id,
+            user_id: p.user_id,
             author: p.author_name,
             avatar: p.author_avatar,
             title: p.title,
