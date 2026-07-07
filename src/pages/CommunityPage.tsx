@@ -338,6 +338,53 @@ const CommunityPage = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Edit Post Dialog */}
+        <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+          <DialogContent className="max-w-sm rounded-3xl">
+            <DialogHeader><DialogTitle className="text-[13px] font-display font-bold">Edit Post</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="rounded-2xl h-11 bg-muted/50 border-border/60" />
+              <Textarea value={editBody} onChange={e => setEditBody(e.target.value)} className="rounded-2xl min-h-[100px] bg-muted/50 border-border/60" />
+              <Button
+                onClick={async () => {
+                  if (!editing) return;
+                  if (!editTitle.trim() || !editBody.trim()) { toast({ title: "Missing fields", variant: "destructive" }); return; }
+                  const ok = await editPost(editing.id, editTitle.trim(), editBody.trim());
+                  if (ok) { toast({ title: "Post updated" }); setEditing(null); }
+                  else toast({ title: "Update failed", variant: "destructive" });
+                }}
+                className="w-full rounded-2xl font-bold gradient-primary border-0 h-11"
+              >
+                Save changes
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirm Dialog */}
+        <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}>
+          <DialogContent className="max-w-sm rounded-3xl">
+            <DialogHeader><DialogTitle className="text-[13px] font-display font-bold">Delete this post?</DialogTitle></DialogHeader>
+            <p className="text-[11px] text-muted-foreground">This action cannot be undone.</p>
+            <DialogFooter className="flex-row gap-2 sm:justify-end">
+              <Button variant="outline" onClick={() => setConfirmDelete(null)} className="rounded-2xl h-10 flex-1">Cancel</Button>
+              <Button
+                variant="destructive"
+                className="rounded-2xl h-10 flex-1"
+                onClick={async () => {
+                  if (!confirmDelete) return;
+                  const ok = await deletePost(confirmDelete.id);
+                  if (ok) { toast({ title: "Post deleted" }); setConfirmDelete(null); }
+                  else toast({ title: "Delete failed", variant: "destructive" });
+                }}
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
         <BottomNav />
       </div>
     </PageTransition>
