@@ -28,12 +28,19 @@ const CommunityPage = () => {
   const [postBody, setPostBody] = useState("");
   const [postType, setPostType] = useState<"text" | "picture" | "video">("text");
   const [realFarmChecked, setRealFarmChecked] = useState(false);
+  const [editing, setEditing] = useState<CommunityPost | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<CommunityPost | null>(null);
 
   const {
     communityPosts, likePost, commentPost, sharePost, createPost, createMediaPost,
     likesUsedToday, commentsUsedToday, sharesUsedToday, dailyPosts, balance,
-    weeklyVideoPosts, weeklyPicturePosts
+    weeklyVideoPosts, weeklyPicturePosts,
+    approvePost, editPost, deletePost, deleteComment,
   } = useNdc();
+  const { user } = useAuth();
+  const { isAdmin } = useAdminRole();
   const { toast } = useToast();
 
   const handleLike = (postId: string) => {
