@@ -153,22 +153,28 @@ const CommunityPage = () => {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {communityPosts.map((d) => (
-                <Card key={d.id} className="border border-border/60 shadow-premium rounded-2xl">
+              {communityPosts.map((d) => {
+                const isOwner = !!user && d.user_id === user.id;
+                const isPending = d.status === "pending";
+                return (
+                <Card key={d.id} className={`border shadow-premium rounded-2xl ${isPending ? "border-accent/40 bg-accent/[0.03]" : "border-border/60"}`}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center text-primary font-bold text-[10px]">{d.avatar}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-bold text-foreground">{d.author}</p>
+                        <p className="text-[12px] font-bold text-foreground truncate">
+                          {d.author}
+                          {isOwner && <span className="ml-1.5 text-[9px] font-semibold text-primary">· You</span>}
+                        </p>
                         <p className="text-[10px] text-muted-foreground">{d.time}</p>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        {d.status === "pending" && (
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        {isPending && (
                           <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent-foreground flex items-center gap-1">
-                            <Clock className="h-2.5 w-2.5" /> Pending
+                            <Clock className="h-2.5 w-2.5" /> {isOwner ? "Pending review" : "Pending"}
                           </span>
                         )}
-                        {d.status === "approved" && d.author === "You" && (
+                        {!isPending && isOwner && (
                           <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/8 text-primary flex items-center gap-1">
                             <CheckCircle className="h-2.5 w-2.5" /> Approved
                           </span>
@@ -178,36 +184,98 @@ const CommunityPage = () => {
                         </span>
                       </div>
                     </div>
+
+                    {isOwner && isPending && (
+                      <p className="text-[10px] text-accent-foreground/80 bg-accent/10 border border-accent/20 rounded-xl px-2.5 py-1.5">
+                        Only you can see this post until a moderator approves it.
+                      </p>
+                    )}
+
                     <h3 className="font-display font-bold text-[13px] text-foreground">{d.title}</h3>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">{d.body}</p>
 
                     {d.comments.length > 0 && (
                       <div className="bg-muted/50 rounded-xl p-2.5 space-y-1">
-                        {d.comments.slice(-2).map((c, i) => (
-                          <p key={i} className="text-[10px] text-muted-foreground">
-                            <strong className="text-foreground">{c.author}:</strong> {c.text}
-                          </p>
-                        ))}
+                        {d.comments.slice(-3).map((c) => {
+                          const canRemoveComment = isAdmin || (!!user && c.user_id === user.id);
+                          return (
+                            <div key={c.id} className="flex items-start justify-between gap-2 text-[10px] text-muted-foreground">
+                              <p className="min-w-0 flex-1">
+                                <strong className="text-foreground">{c.author}:</strong> {c.text}
+                              </p>
+                              {canRemoveComment && (
+                                <button
+                                  onClick={async () => {
+                                    const ok = await deleteComment(d.id, c.id);
+                                    if (ok) toast({ title: "Comment removed" });
+                                  }}
+                                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                                  aria-label="Delete comment"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
                     <div className="flex items-center gap-5 text-[10px] text-muted-foreground">
-                      <button onClick={() => handleLike(d.id)}
-                        className={`flex items-center gap-1 transition-colors ${likesUsedToday.includes(d.id) ? "text-primary" : "hover:text-primary"}`}>
+                      <button onClick={() => handleLike(d.id)} disabled={isPending}
+                        className={`flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${likesUsedToday.includes(d.id) ? "text-primary" : "hover:text-primary"}`}>
                         <Heart className={`h-3.5 w-3.5 ${likesUsedToday.includes(d.id) ? "fill-current" : ""}`} /> {d.likes}
                       </button>
-                      <button onClick={() => setShowCommentDialog(d.id)}
-                        className={`flex items-center gap-1 transition-colors ${commentsUsedToday.includes(d.id) ? "text-primary" : "hover:text-primary"}`}>
+                      <button onClick={() => setShowCommentDialog(d.id)} disabled={isPending}
+                        className={`flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${commentsUsedToday.includes(d.id) ? "text-primary" : "hover:text-primary"}`}>
                         <MessageCircle className="h-3.5 w-3.5" /> {d.comments.length}
                       </button>
-                      <button onClick={() => handleShare(d.id)}
-                        className={`flex items-center gap-1 transition-colors ${sharesUsedToday.includes(d.id) ? "text-primary" : "hover:text-primary"}`}>
+                      <button onClick={() => handleShare(d.id)} disabled={isPending}
+                        className={`flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${sharesUsedToday.includes(d.id) ? "text-primary" : "hover:text-primary"}`}>
                         <Share2 className="h-3.5 w-3.5" /> {d.shares}
                       </button>
                     </div>
+
+                    {(isOwner || isAdmin) && (
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/40">
+                        {isOwner && (
+                          <button
+                            onClick={() => { setEditing(d); setEditTitle(d.title); setEditBody(d.body); }}
+                            className="flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors"
+                          >
+                            <Pencil className="h-3 w-3" /> Edit
+                          </button>
+                        )}
+                        {isAdmin && isPending && (
+                          <button
+                            onClick={async () => {
+                              const ok = await approvePost(d.id);
+                              if (ok) toast({ title: "Post approved ✅", description: "It's now visible to everyone." });
+                            }}
+                            className="flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                          >
+                            <ShieldCheck className="h-3 w-3" /> Approve
+                          </button>
+                        )}
+                        {(isOwner || isAdmin) && (
+                          <button
+                            onClick={() => setConfirmDelete(d)}
+                            className="flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors ml-auto"
+                          >
+                            <Trash2 className="h-3 w-3" /> Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
+              {communityPosts.length === 0 && (
+                <p className="text-center text-[11px] text-muted-foreground py-10 md:col-span-2 lg:col-span-3">
+                  No posts yet. Be the first to share!
+                </p>
+              )}
             </div>
           )}
 
