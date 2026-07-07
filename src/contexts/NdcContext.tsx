@@ -574,7 +574,7 @@ export const NdcProvider = ({ children }: { children: ReactNode }) => {
       weeklyVideoPosts, weeklyPicturePosts, monthlyHarvests,
       likesUsedToday, commentsUsedToday, sharesUsedToday,
       likePost, commentPost, sharePost,
-      communityPosts, createPost, createMediaPost, approvePost, harvestAction,
+      communityPosts, createPost, createMediaPost, approvePost, editPost, deletePost, deleteComment, harvestAction,
       isMining, miningSession, miningMultiplier, startMining, stopMining,
       activeUpgrades, purchaseUpgrade,
       stakedProjects, stakeRecords, stakeProject, claimStake, refreshStakes,
