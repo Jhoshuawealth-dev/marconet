@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Share2, Plus, Play, Eye, Users, Wifi, Send, CheckCircle, Clock, Image, Video, FileText } from "lucide-react";
+import { Heart, MessageCircle, Share2, Plus, Play, Eye, Users, Wifi, Send, CheckCircle, Clock, Image, Video, FileText, Pencil, Trash2, ShieldCheck, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import BottomNav from "@/components/app/BottomNav";
-import { useNdc } from "@/contexts/NdcContext";
+import { useNdc, CommunityPost } from "@/contexts/NdcContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PageTransition from "@/components/app/PageTransition";
 
 const liveStreams = [
