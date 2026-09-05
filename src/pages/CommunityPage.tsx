@@ -14,10 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PageTransition from "@/components/app/PageTransition";
 
-const liveStreams = [
-  { id: 1, title: "Green Valley Soy — Live Harvest", viewers: 234, host: "FarmMaster", status: "LIVE" },
-  { id: 2, title: "Maize Growth Update — Day 45", viewers: 89, host: "AgriTech Pro", status: "LIVE" },
-];
 
 const CommunityPage = () => {
   const [tab, setTab] = useState<"live" | "community">("community");
