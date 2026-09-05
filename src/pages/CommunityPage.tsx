@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Share2, Plus, Play, Eye, Users, Wifi, Send, CheckCircle, Clock, Image, Video, FileText, Pencil, Trash2, ShieldCheck, X } from "lucide-react";
+import { Heart, MessageCircle, Share2, Plus, Wifi, Send, CheckCircle, Clock, Image, Video, FileText, Pencil, Trash2, ShieldCheck, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
