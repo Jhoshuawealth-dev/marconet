@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Share2, Plus, Play, Eye, Users, Wifi, Send, CheckCircle, Clock, Image, Video, FileText, Pencil, Trash2, ShieldCheck, X } from "lucide-react";
+import { Heart, MessageCircle, Share2, Plus, Wifi, Send, CheckCircle, Clock, Image, Video, FileText, Pencil, Trash2, ShieldCheck, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PageTransition from "@/components/app/PageTransition";
 
-const liveStreams = [
-  { id: 1, title: "Green Valley Soy — Live Harvest", viewers: 234, host: "FarmMaster", status: "LIVE" },
-  { id: 2, title: "Maize Growth Update — Day 45", viewers: 89, host: "AgriTech Pro", status: "LIVE" },
-];
 
 const CommunityPage = () => {
   const [tab, setTab] = useState<"live" | "community">("community");
@@ -127,31 +123,22 @@ const CommunityPage = () => {
           )}
 
           {tab === "live" ? (
-            <div className="space-y-4">
-              {liveStreams.map((s) => (
-                <Card key={s.id} className="border border-border/60 shadow-premium rounded-2xl overflow-hidden">
-                  <div className="bg-primary/8 h-36 flex items-center justify-center relative">
-                    <Play className="h-12 w-12 text-primary/30" />
-                    <span className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive text-destructive-foreground flex items-center gap-1">
-                      <Wifi className="h-2.5 w-2.5" /> LIVE
-                    </span>
-                    <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-foreground/70 text-background flex items-center gap-1">
-                      <Eye className="h-2.5 w-2.5" /> {s.viewers}
-                    </span>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-display font-bold text-[13px] text-foreground">{s.title}</h3>
-                    <div className="flex items-center justify-between mt-2.5">
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Users className="h-3 w-3" /> {s.host}
-                      </span>
-                      <Button size="sm" className="text-[10px] h-8 rounded-xl font-bold gradient-accent text-accent-foreground border-0">Watch Now</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Card className="border border-border/60 shadow-premium rounded-2xl">
+              <CardContent className="p-8 flex flex-col items-center text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-primary/8 flex items-center justify-center">
+                  <Wifi className="h-6 w-6 text-primary/60" />
+                </div>
+                <h3 className="font-display font-bold text-[14px] text-foreground">Live Fields is coming soon</h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
+                  Soon you'll be able to watch farms broadcast live harvests and field updates right here. We'll notify you the moment the first stream goes on air.
+                </p>
+                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-accent/15 text-accent-foreground">
+                  In development
+                </span>
+              </CardContent>
+            </Card>
           ) : (
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {communityPosts.map((d) => {
                 const isOwner = !!user && d.user_id === user.id;
