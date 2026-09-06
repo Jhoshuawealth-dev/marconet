@@ -49,24 +49,21 @@ const InstallPrompt = () => {
     const onBIP = (e: Event) => {
       e.preventDefault();
       setEvt(e as BIPEvent);
-      setMode("native");
+      // If the banner isn't already showing, surface it now.
+      setMode((m) => (m === "hidden" ? "native" : m));
     };
     const onInstalled = () => setMode("hidden");
     window.addEventListener("beforeinstallprompt", onBIP);
     window.addEventListener("appinstalled", onInstalled);
 
-    // iOS Safari never fires beforeinstallprompt — show a manual guide instead.
-    if (isIos() && isSafari()) {
-      // Small delay so it doesn't flash on first paint.
-      const t = window.setTimeout(() => setMode("ios"), 1500);
-      return () => {
-        window.clearTimeout(t);
-        window.removeEventListener("beforeinstallprompt", onBIP);
-        window.removeEventListener("appinstalled", onInstalled);
-      };
-    }
+    // Proactively prompt on open. Browsers only fire beforeinstallprompt
+    // after engagement criteria, so we surface a banner after a short delay.
+    // On iOS Safari (no beforeinstallprompt at all) we show the manual guide.
+    const initialMode: Mode = isIos() && isSafari() ? "ios" : "native";
+    const t = window.setTimeout(() => setMode(initialMode), 1200);
 
     return () => {
+      window.clearTimeout(t);
       window.removeEventListener("beforeinstallprompt", onBIP);
       window.removeEventListener("appinstalled", onInstalled);
     };
@@ -103,6 +100,44 @@ const InstallPrompt = () => {
                 <span>Tap</span>
                 <Share className="h-3.5 w-3.5 text-primary" aria-label="Share" />
                 <span>in Safari, then</span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5">
+                  <Plus className="h-3 w-3" /> Add to Home Screen
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={dismiss}
+              aria-label="Dismiss"
+              className="p-1 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No native event yet — show a manual "add to home screen" guide.
+  if (!evt) {
+    return (
+      <div className="fixed bottom-[84px] left-4 right-4 z-[60] app-container">
+        <div className="rounded-2xl bg-card border border-border/60 shadow-elevated p-4 backdrop-blur-xl">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
+              <Download className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-bold text-foreground text-sm">Install Marco Net</p>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Install the app for a faster, full-screen experience.
+              </p>
+              <div className="flex flex-wrap items-center gap-1 text-[11px] text-foreground/90">
+                <span>Tap your browser</span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5">
+                  menu
+                </span>
+                <span>then</span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5">
                   <Plus className="h-3 w-3" /> Add to Home Screen
                 </span>
