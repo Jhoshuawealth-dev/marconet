@@ -49,24 +49,21 @@ const InstallPrompt = () => {
     const onBIP = (e: Event) => {
       e.preventDefault();
       setEvt(e as BIPEvent);
-      setMode("native");
+      // If the banner isn't already showing, surface it now.
+      setMode((m) => (m === "hidden" ? "native" : m));
     };
     const onInstalled = () => setMode("hidden");
     window.addEventListener("beforeinstallprompt", onBIP);
     window.addEventListener("appinstalled", onInstalled);
 
-    // iOS Safari never fires beforeinstallprompt — show a manual guide instead.
-    if (isIos() && isSafari()) {
-      // Small delay so it doesn't flash on first paint.
-      const t = window.setTimeout(() => setMode("ios"), 1500);
-      return () => {
-        window.clearTimeout(t);
-        window.removeEventListener("beforeinstallprompt", onBIP);
-        window.removeEventListener("appinstalled", onInstalled);
-      };
-    }
+    // Proactively prompt on open. Browsers only fire beforeinstallprompt
+    // after engagement criteria, so we surface a banner after a short delay.
+    // On iOS Safari (no beforeinstallprompt at all) we show the manual guide.
+    const initialMode: Mode = isIos() && isSafari() ? "ios" : "native";
+    const t = window.setTimeout(() => setMode(initialMode), 1200);
 
     return () => {
+      window.clearTimeout(t);
       window.removeEventListener("beforeinstallprompt", onBIP);
       window.removeEventListener("appinstalled", onInstalled);
     };
