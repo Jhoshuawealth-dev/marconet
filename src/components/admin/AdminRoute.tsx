@@ -14,7 +14,7 @@ const AdminRoute = ({ children, superOnly = false }: { children: React.ReactNode
     );
   }
 
-  if (!user) return <Navigate to="/signin" replace />;
+  if (!user) return <Navigate to="/admin/login" replace />;
   if (superOnly && !isSuperAdmin) return <Navigate to="/dashboard" replace />;
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 

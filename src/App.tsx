@@ -56,6 +56,7 @@ import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminAnnouncementsPage from "./pages/admin/AdminAnnouncementsPage";
 import AdminVerificationPage from "./pages/admin/AdminVerificationPage";
 import AdminRequestAccessPage from "./pages/AdminRequestAccessPage";
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminRoute from "@/components/admin/AdminRoute";
 import InstallPrompt from "@/components/app/InstallPrompt";
 
@@ -114,6 +115,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/request" element={<P><AdminRequestAccessPage /></P>} />
 
         {/* Admin routes */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<A><AdminDashboardPage /></A>} />
         <Route path="/admin/users" element={<A><AdminUsersPage /></A>} />
         <Route path="/admin/users/:id" element={<A><AdminUserDetailPage /></A>} />
